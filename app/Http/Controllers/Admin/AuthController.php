@@ -16,23 +16,24 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         if (Auth::guard('admin')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('admin.katalog'));
+            return redirect()->intended(route('admin.katalog.index'));
         }
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
-        ]);
+        ])->withInput();
     }
 
     public function logout(Request $request)
     {
         Auth::guard('admin')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

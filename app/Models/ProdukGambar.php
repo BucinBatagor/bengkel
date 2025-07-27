@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProdukGambar extends Model
 {
-    protected $table = 'produk_gambar'; // ✅ tambahkan ini
+    protected $table = 'produk_gambar';
 
-    protected $fillable = ['produk_id', 'gambar']; // ✅ ini juga penting
+    protected $fillable = ['produk_id', 'gambar'];
 
     public function produk()
     {

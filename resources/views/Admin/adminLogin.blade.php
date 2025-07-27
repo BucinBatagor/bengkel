@@ -1,11 +1,11 @@
-@extends('Template.adminLogin')
+@extends('Template.authAdmin')
 
-@section('title', 'Login Admin')
+@section('title', 'Login')
 
 @section('content')
 <section class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Login Admin</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
 
         <form method="POST" action="{{ route('admin.login') }}">
             @csrf
@@ -24,14 +24,11 @@
         </form>
 
         @if ($errors->any())
-        @if ($errors->any())
-        <div class="mb-4 text-red-600 text-sm">
+        <div class="mt-4 text-red-600 text-sm">
             @foreach ($errors->all() as $error)
-            <p>{{ $error }}</p>
+                <p>{{ $error }}</p>
             @endforeach
         </div>
-        @endif
-
         @endif
     </div>
 </section>

@@ -1,6 +1,5 @@
 <footer class="bg-black text-white py-10">
     <div class="max-w-screen-xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 items-start">
-
         <div class="flex flex-col items-center">
             <img 
                 src="/assets/LogoBengkel.png" 
@@ -36,6 +35,5 @@
                 </div>
             </div>
         </div>
-
     </div>
 </footer>

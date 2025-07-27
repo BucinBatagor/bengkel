@@ -8,11 +8,15 @@ class Produk extends Model
 {
     protected $table = 'produk';
 
-    protected $fillable = ['nama', 'kategori', 'deskripsi', 'harga'];
+    protected $fillable = [
+        'nama',
+        'kategori',
+        'deskripsi',
+        'harga',
+    ];
 
-    public function gambars()
+    public function gambar()
     {
         return $this->hasMany(ProdukGambar::class);
     }
 }
-

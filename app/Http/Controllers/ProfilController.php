@@ -6,30 +6,30 @@ use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use App\Models\Pelanggan;
 
 class ProfilController extends Controller
 {
     public function edit()
     {
-        return view('User.profil', [
-            'user' => Auth::user()
+        return view('pelanggan.profil', [
+            'pelanggan' => Auth::user(),
         ]);
     }
 
     public function update(UpdateProfileRequest $request)
     {
-        $user = Auth::user();
+        $pelanggan = Auth::user();
 
         $data = $request->safe()->only(['name', 'email', 'phone', 'address']);
 
-        $user->fill($data);
+        $pelanggan->fill($data);
 
         if ($request->filled('password')) {
-            $user->password = Hash::make($request->input('password'));
+            $pelanggan->password = Hash::make($request->input('password'));
         }
 
-        $user->save();
+        $pelanggan->save();
 
         return back()->with('success', 'Profil berhasil diperbarui');
     }
@@ -40,10 +40,9 @@ class ProfilController extends Controller
             'password' => 'required|string|min:6|confirmed',
         ]);
 
-        $user = Auth::user();
-
-        $user->password = Hash::make($request->password);
-        $user->save();
+        $pelanggan = Auth::user();
+        $pelanggan->password = Hash::make($request->password);
+        $pelanggan->save();
 
         return back()->with('success', 'Password berhasil diperbarui');
     }

@@ -24,6 +24,6 @@ class KatalogController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        return view('User.katalog', compact('produks', 'kategoris'));
+        return view('pelanggan.katalog', compact('produks', 'kategoris'));
     }
 }

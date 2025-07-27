@@ -9,7 +9,7 @@ class BerandaController extends Controller
 {
     public function index()
     {
-        $produkSemua = Produk::with('gambars')->latest()->get();
+        $produkSemua = Produk::with('gambar')->latest()->get();
 
         $kategoriUnikTerbaru = $produkSemua
             ->pluck('kategori')
@@ -21,7 +21,7 @@ class BerandaController extends Controller
 
             return [
                 'nama'        => ucfirst($kategori),
-                'img'         => optional($produk->gambars->first())->gambar ?? 'assets/default.jpg',
+                'img'         => optional(value: $produk->gambar->first())->gambar ?? 'assets/default.jpg',
                 'slug'        => $kategori,
                 'id'          => $produk->id,
                 'nama_produk' => $produk->nama,
@@ -29,6 +29,6 @@ class BerandaController extends Controller
             ];
         });
 
-        return view('user.beranda', compact('kategoriList'));
+        return view('pelanggan.beranda', compact('kategoriList'));
     }
 }
