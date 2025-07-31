@@ -13,46 +13,49 @@ class MidtransCallbackController extends Controller
         Log::info('Midtrans callback received', $request->all());
 
         $serverKey = config('midtrans.server_key');
-        $signatureKey = hash(
-            'sha512',
+
+        $signature = hash('sha512',
             $request->order_id .
-                $request->status_code .
-                $request->gross_amount .
-                $serverKey
+            $request->status_code .
+            $request->gross_amount .
+            $serverKey
         );
 
-        if ($signatureKey !== $request->signature_key) {
+        if ($signature !== $request->signature_key) {
+            Log::warning("Signature tidak valid untuk order_id {$request->order_id}");
             return response()->json(['message' => 'Invalid signature'], 403);
         }
 
-        // Temukan pemesanan berdasarkan order_id
         $pemesanan = Pemesanan::where('order_id', $request->order_id)->first();
 
         if (!$pemesanan) {
+            Log::error("Pemesanan tidak ditemukan: {$request->order_id}");
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        // Tangani status dari Midtrans
         switch ($request->transaction_status) {
-            case 'capture':
             case 'settlement':
-                $pemesanan->status = 'diproses';
+            case 'capture':
+                $pemesanan->status = 'menunggu';
                 break;
-
             case 'pending':
-                // Jangan simpan status pending
-                return response()->json(['message' => 'Pending status ignored'], 200);
-
+                $pemesanan->status = 'pending';
+                break;
+            case 'deny':
             case 'expire':
             case 'cancel':
-            case 'deny':
                 $pemesanan->status = 'gagal';
+                break;
+            default:
+                Log::info("Status tidak dikenal: {$request->transaction_status}");
                 break;
         }
 
         $pemesanan->midtrans_response = $request->all();
         $pemesanan->save();
 
-        return response()->json(['message' => 'Notification handled'], 200);
+        Log::info("Status pemesanan {$pemesanan->order_id} diupdate menjadi: {$pemesanan->status}");
+
+        return response()->json(['message' => 'Callback processed'], 200);
     }
 }

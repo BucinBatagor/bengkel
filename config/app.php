@@ -123,7 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-        /*
+    /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
     |--------------------------------------------------------------------------
@@ -171,4 +171,5 @@ return [
         App\Providers\RouteServiceProvider::class,
 
     ],
+
 ];

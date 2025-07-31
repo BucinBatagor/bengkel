@@ -10,7 +10,7 @@ class PemesananSeeder extends Seeder
 {
     public function run(): void
     {
-        $statusList = ['diproses', 'dikerjakan', 'selesai', 'dibatalkan']; // tanpa 'pending'
+        $statusList = ['diproses', 'dikerjakan', 'selesai', 'dibatalkan'];
 
         $pesanan = [
             ['order_id' => 'ORD-0001', 'pelanggan_id' => 1, 'produk_id' => 1],

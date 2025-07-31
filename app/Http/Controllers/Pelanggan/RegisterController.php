@@ -18,18 +18,18 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:pelanggan,email'],
-            'phone'    => ['required', 'string', 'max:20'],
-            'address'  => ['required', 'string'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:pelanggan,email'],
+            'phone' => ['required', 'string', 'max:20'],
+            'address' => ['required', 'string'],
             'password' => ['required', 'confirmed', 'min:6'],
         ]);
 
         $user = Pelanggan::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'phone'    => $validated['phone'],
-            'address'  => $validated['address'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'address' => $validated['address'],
             'password' => Hash::make($validated['password']),
         ]);
 

@@ -17,5 +17,3 @@ use App\Http\Controllers\MidtransCallbackController;
 
 // Route notifikasi Midtrans (webhook)
 Route::post('/midtrans/callback', [MidtransCallbackController::class, 'receive']);
-
-\Log::info('API route file loaded');

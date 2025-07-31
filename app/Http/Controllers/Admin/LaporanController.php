@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Pemesanan;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PemesananExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
@@ -21,7 +19,6 @@ class LaporanController extends Controller
         if ($start && $end) {
             $startDate = $start . ' 00:00:00';
             $endDate = $end . ' 23:59:59';
-
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
 
@@ -51,7 +48,6 @@ class LaporanController extends Controller
             ])->with('error', 'Tidak ada data yang bisa di-export.');
         }
 
-        // Generate dynamic filename
         $fileName = 'laporan_' . date('Ymd', strtotime($tanggalAwal)) . '-' . date('Ymd', strtotime($tanggalAkhir)) . '.pdf';
 
         $pdf = Pdf::loadView('admin.laporan_pdf', ['pemesanan' => $data]);

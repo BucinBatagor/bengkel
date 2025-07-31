@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pelanggan;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Pelanggan;
 
 class ProfilController extends Controller
 {
@@ -22,7 +22,6 @@ class ProfilController extends Controller
         $pelanggan = Auth::user();
 
         $data = $request->safe()->only(['name', 'email', 'phone', 'address']);
-
         $pelanggan->fill($data);
 
         if ($request->filled('password')) {

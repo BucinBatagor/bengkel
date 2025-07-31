@@ -1,79 +1,85 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AuthController as AdminAuth;
-use App\Http\Controllers\Admin\KatalogController as AdminKatalog;
+
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\KatalogController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\PemesananController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Pelanggan\LoginController;
 use App\Http\Controllers\Pelanggan\RegisterController;
-use App\Http\Controllers\BerandaController;
-use App\Http\Controllers\KatalogController;
-use App\Http\Controllers\ProdukController;
-use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\Pelanggan\BerandaController;
+use App\Http\Controllers\Pelanggan\KatalogController as KatalogPelangganController;
+use App\Http\Controllers\Pelanggan\ProdukController;
+use App\Http\Controllers\Pelanggan\ProfilController;
+use App\Http\Controllers\Pelanggan\PesananController;
+use App\Http\Controllers\Pelanggan\PemesananDetailController;
 
-/*
-|--------------------------------------------------------------------------
-| Admin Routes
-|--------------------------------------------------------------------------
-*/
-
+// Admin
 Route::prefix('admin')->name('admin.')->group(function () {
-    // Login & Logout
-    Route::get('/login', [AdminAuth::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AdminAuth::class, 'login']);
-    Route::post('/logout', [AdminAuth::class, 'logout'])->middleware('auth:admin')->name('logout');
+    // Login dan Logout
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:admin')->name('logout');
 
-    // Admin Area (requires login)
+    // Auth
     Route::middleware('auth:admin')->group(function () {
-        Route::delete('/katalog-gambar/{id}', [AdminKatalog::class, 'hapusGambar'])->name('katalog.gambar.hapus');
-        Route::resource('katalog', AdminKatalog::class)->except(['show']);
+        // Katalog
+        Route::delete('/katalog-gambar/{id}', [KatalogController::class, 'hapusGambar'])->name('katalog.gambar.hapus');
+        Route::resource('katalog', KatalogController::class)->except(['show']);
+
+        // Pelanggan
         Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
 
-        // Pemesanan Masuk (Admin
+        // Pemesanan
         Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
         Route::patch('/pemesanan/{id}', [PemesananController::class, 'updateStatus'])->name('pemesanan.update');
 
+        // Laporan
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
     });
 });
 
-/*
-|--------------------------------------------------------------------------
-| Pelanggan Routes
-|--------------------------------------------------------------------------
-*/
-
+// Pelanggan
 Route::prefix('/')->group(function () {
+    // Login dan Logout
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
+
     // Beranda
     Route::get('/', fn() => redirect()->route('beranda'));
-    Route::get('beranda', [BerandaController::class, 'index'])->name('beranda');
+    Route::get('/beranda', [BerandaController::class, 'index'])->name('beranda');
 
-    // Katalog & Produk
-    Route::get('katalog', [KatalogController::class, 'index'])->name('katalog');
-    Route::get('produk/{id}', [ProdukController::class, 'show'])->name('produk.show');
+    // Katalog dan Produk
+    Route::get('/katalog', [KatalogPelangganController::class, 'index'])->name('katalog');
+    Route::get('/produk/{id}', [ProdukController::class, 'show'])->name('produk.show');
 
     // Auth
-    Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [LoginController::class, 'login'])->name('login');
-    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
-
-    Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('register', [RegisterController::class, 'register']);
-    
-    // Akun (requires login)
     Route::middleware('auth:web')->group(function () {
         // Profil
-        Route::get('profil', [ProfilController::class, 'edit'])->name('profil.edit');
-        Route::post('profil', [ProfilController::class, 'update'])->name('profil.update');
+        Route::get('/profil', [ProfilController::class, 'edit'])->name('profil.edit');
+        Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
 
-        // Ganti Password
-        Route::get('ubah-password', fn() => view('pelanggan.ubahPassword'))->name('profil.password');
-        Route::put('ubah-password', [ProfilController::class, 'updatePassword'])->name('profil.update-password');
+        // Ubah Password
+        Route::get('/ubah-password', fn() => view('pelanggan.ubahPassword'))->name('profil.password');
+        Route::put('/ubah-password', [ProfilController::class, 'updatePassword'])->name('profil.update-password');
 
-        // Checkout
-        Route::post('checkout', [ProdukController::class, 'checkout'])->name('checkout');
+        // Keranjang
+        Route::get('/keranjang', [PemesananDetailController::class, 'index'])->name('keranjang.index');
+        Route::post('/keranjang/tambah', [PemesananDetailController::class, 'tambah'])->name('keranjang.tambah');
+        Route::delete('/keranjang/hapus/{id}', [PemesananDetailController::class, 'hapus'])->name('keranjang.hapus');
+        Route::post('/keranjang/checkout', [PemesananDetailController::class, 'checkout'])->name('keranjang.checkout');
+
+        // Pesanan
+        Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
+        Route::post('/pesanan/{id}/bayar', [PesananController::class, 'bayar'])->name('pesanan.bayar');
+        Route::post('/pesanan/{id}/batal', [PesananController::class, 'batal'])->name('pesanan.batal');
+        Route::post('/pesanan/{id}/batalkan-refund', [PesananController::class, 'batalkanRefund'])->name('pesanan.batalkan_refund')->middleware('auth');
     });
 });

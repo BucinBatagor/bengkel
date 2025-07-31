@@ -8,19 +8,19 @@
         <h1 class="text-2xl font-bold mb-6">EDIT PRODUK</h1>
 
         @if (session('success'))
-        <div class="bg-green-100 text-green-800 p-4 rounded mb-4">
-            {{ session('success') }}
-        </div>
+            <div class="bg-green-100 text-green-800 p-4 rounded mb-4">
+                {{ session('success') }}
+            </div>
         @endif
 
         @if ($errors->any())
-        <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
-            <ul class="list-disc pl-5 space-y-1">
-                @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+            <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
+                <ul class="list-disc pl-5 space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         @endif
 
         <form action="{{ route('admin.katalog.update', $produk->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -58,8 +58,7 @@
             </div>
 
             <div class="flex justify-left">
-                <button type="submit"
-                    class="bg-black text-white px-10 py-2 rounded hover:bg-gray-800">
+                <button type="submit" class="bg-black text-white px-10 py-2 rounded hover:bg-gray-800">
                     Simpan
                 </button>
             </div>
@@ -70,15 +69,15 @@
             <div class="flex flex-wrap gap-4">
                 @foreach ($produk->gambar ?? [] as $gambar)
                     @if (!empty($gambar) && isset($gambar->id))
-                    <div class="relative w-32 h-24 rounded group overflow-visible">
-                        <img src="{{ asset('storage/' . $gambar->gambar) }}" alt="Gambar"
-                            class="w-full h-full object-cover border rounded shadow relative z-10">
-                        <button type="button"
-                            @click="show = true; deleteUrl = '{{ route('admin.katalog.gambar.hapus', $gambar->id) }}'"
-                            class="absolute top-1 right-1 z-20 w-6 h-6 bg-red-600 text-white text-sm font-bold flex items-center justify-center rounded-full shadow hover:bg-red-700">
-                            &times;
-                        </button>
-                    </div>
+                        <div class="relative w-32 h-24 rounded group overflow-visible">
+                            <img src="{{ asset('storage/' . $gambar->gambar) }}" alt="Gambar"
+                                class="w-full h-full object-cover border rounded shadow relative z-10">
+                            <button type="button"
+                                @click="show = true; deleteUrl = '{{ route('admin.katalog.gambar.hapus', $gambar->id) }}'"
+                                class="absolute top-1 right-1 z-20 w-6 h-6 bg-red-600 text-white text-sm font-bold flex items-center justify-center rounded-full shadow hover:bg-red-700">
+                                &times;
+                            </button>
+                        </div>
                     @endif
                 @endforeach
             </div>
@@ -91,12 +90,10 @@
                     <form :action="deleteUrl" method="POST" class="flex justify-center gap-4">
                         @csrf
                         @method('DELETE')
-                        <button type="submit"
-                            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                             Hapus
                         </button>
-                        <button type="button"
-                            @click="show = false"
+                        <button type="button" @click="show = false"
                             class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
                             Batal
                         </button>

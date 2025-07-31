@@ -12,32 +12,36 @@
             <input type="hidden" name="next" value="{{ request('next') }}">
 
             <div class="mb-4">
-                <label class="block mb-1 font-medium">Email</label>
+                <label for="email" class="block mb-1 font-medium">Email</label>
                 <input
                     type="email"
                     name="email"
+                    id="email"
+                    value="{{ old('email') }}"
                     required
+                    autofocus
                     class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
             </div>
 
             <div class="mb-4">
-                <label class="block mb-1 font-medium">Password</label>
+                <label for="password" class="block mb-1 font-medium">Password</label>
                 <input
                     type="password"
                     name="password"
+                    id="password"
                     required
                     class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
             </div>
 
             <button
                 type="submit"
-                class="w-full bg-black text-white py-2 rounded hover:bg-gray-700">
+                class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">
                 Login
             </button>
         </form>
 
         @if ($errors->any())
-            <div class="mb-4 text-red-600 text-sm">
+            <div class="mt-4 text-red-600 text-sm">
                 @foreach ($errors->all() as $error)
                     <p>{{ $error }}</p>
                 @endforeach

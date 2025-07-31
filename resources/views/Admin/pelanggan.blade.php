@@ -29,7 +29,6 @@
                 <thead class="bg-black text-white uppercase text-xs tracking-wider">
                     <tr>
                         <th class="px-5 py-3 border-r border-gray-400">#</th>
-
                         @php
                         $columns = ['name' => 'Nama', 'email' => 'Email', 'phone' => 'No HP', 'address' => 'Alamat'];
                         $currentSort = request('sort');
@@ -72,7 +71,6 @@
 
     <div class="flex justify-center mt-10">
         <ul class="inline-flex items-center text-sm">
-            {{-- Panah ke kiri --}}
             <div class="inline-flex space-x-1 mr-2">
                 @if ($users->onFirstPage())
                 <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
@@ -89,29 +87,27 @@
                 @endif
             </div>
 
-            {{-- Nomor halaman --}}
             <div class="inline-flex space-x-1 mx-2">
                 @php
-                $current = $users->currentPage();
-                $last = $users->lastPage();
-                $start = max(1, $current - 2);
-                $end = min($last, $start + 4);
-                if ($end - $start < 4) {
-                    $start=max(1, $end - 4);
+                    $current = $users->currentPage();
+                    $last = $users->lastPage();
+                    $start = max(1, $current - 2);
+                    $end = min($last, $start + 4);
+                    if ($end - $start < 4) {
+                        $start = max(1, $end - 4);
                     }
-                    @endphp
+                @endphp
 
-                    @for ($i=$start; $i <=$end; $i++)
-                    <li>
+                @for ($i = $start; $i <= $end; $i++)
+                <li>
                     <a href="{{ $users->appends(request()->except('page'))->url($i) }}"
                         class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
                         {{ $i }}
                     </a>
-                    </li>
-                    @endfor
+                </li>
+                @endfor
             </div>
 
-            {{-- Panah ke kanan --}}
             <div class="inline-flex space-x-1 ml-2">
                 @if ($users->hasMorePages())
                 <li>
@@ -129,6 +125,5 @@
             </div>
         </ul>
     </div>
-
 </section>
 @endsection

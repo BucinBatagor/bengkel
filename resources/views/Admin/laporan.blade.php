@@ -7,7 +7,6 @@
     <div class="w-full max-w-screen-xl bg-white px-8 py-6 rounded-lg shadow flex-1">
         <h1 class="text-2xl font-bold mb-6">LAPORAN PENDAPATAN</h1>
 
-        {{-- Form Filter Tanggal --}}
         <form method="GET" action="{{ route('admin.laporan.index') }}" class="flex flex-wrap gap-4 items-center mb-4">
             <div>
                 <label class="block text-sm font-medium mb-1">Dari Tanggal</label>
@@ -25,7 +24,6 @@
             </div>
         </form>
 
-        {{-- Tampilkan Rentang Tanggal & Tombol Export --}}
         @if(request('from') && request('to') && $pemesanan->count())
         <p class="text-sm text-gray-600 mb-4">
             Menampilkan laporan dari
@@ -38,7 +36,6 @@
             <a href="{{ route('admin.laporan.export', ['from' => request('from'), 'to' => request('to'), 'format' => 'pdf']) }}"
                 class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Export PDF</a>
         </div>
-
         @elseif(request('from') && request('to'))
         <p class="text-sm text-gray-600 mb-4">
             Tidak ada data <strong>selesai</strong> dalam rentang waktu
@@ -48,7 +45,6 @@
         </p>
         @endif
 
-        {{-- Tabel Laporan --}}
         <div class="overflow-x-auto rounded">
             <table class="min-w-full border border-gray-300 text-sm text-left">
                 <thead class="bg-black text-white uppercase text-xs tracking-wider">
@@ -69,7 +65,12 @@
                         </td>
                         <td class="px-5 py-3 border-r border-gray-200">{{ \Carbon\Carbon::parse($pesanan->created_at)->format('d/m/Y') }}</td>
                         <td class="px-5 py-3 border-r border-gray-200">{{ $pesanan->pelanggan->name }}</td>
-                        <td class="px-5 py-3 border-r border-gray-200">{{ $pesanan->produk->nama }}</td>
+                        <td class="px-5 py-3 border-r border-gray-200">
+                            @foreach($pesanan->details as $detail)
+                            <div>{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
+                            @endforeach
+                        </td>
+
                         <td class="px-5 py-3 border-r border-gray-200">
                             Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}
                         </td>
@@ -97,10 +98,9 @@
             </table>
         </div>
     </div>
-    {{-- Pagination --}}
+
     <div class="flex justify-center mt-10">
         <ul class="inline-flex items-center text-sm">
-            {{-- Panah ke halaman pertama dan sebelumnya --}}
             <div class="inline-flex space-x-1 mr-2">
                 @if ($pemesanan->onFirstPage())
                 <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
@@ -117,7 +117,6 @@
                 @endif
             </div>
 
-            {{-- Nomor halaman --}}
             <div class="inline-flex space-x-1 mx-2">
                 @php
                 $current = $pemesanan->currentPage();
@@ -139,7 +138,6 @@
                     @endfor
             </div>
 
-            {{-- Panah ke halaman berikutnya dan terakhir --}}
             <div class="inline-flex space-x-1 ml-2">
                 @if ($pemesanan->hasMorePages())
                 <li>

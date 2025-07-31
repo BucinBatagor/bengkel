@@ -44,17 +44,17 @@ class KatalogController extends Controller
         ]);
 
         $validated = $request->validate([
-            'nama'      => 'required|string|max:255',
-            'kategori'  => 'required|string|max:100',
-            'harga'     => 'required|numeric',
+            'nama' => 'required|string|max:255',
+            'kategori' => 'required|string|max:100',
+            'harga' => 'required|numeric',
             'deskripsi' => 'nullable|string',
-            'gambar.*'  => 'nullable|image|max:2048',
+            'gambar.*' => 'nullable|image|max:2048',
         ]);
 
         $produk = Produk::create([
-            'nama'      => $validated['nama'],
-            'kategori'  => $validated['kategori'],
-            'harga'     => $validated['harga'],
+            'nama' => $validated['nama'],
+            'kategori' => $validated['kategori'],
+            'harga' => $validated['harga'],
             'deskripsi' => $validated['deskripsi'] ?? null,
         ]);
 
@@ -63,7 +63,7 @@ class KatalogController extends Controller
                 $path = $file->store('produk', 'public');
                 ProdukGambar::create([
                     'produk_id' => $produk->id,
-                    'gambar'    => $path,
+                    'gambar' => $path,
                 ]);
             }
         }
@@ -86,11 +86,11 @@ class KatalogController extends Controller
         ]);
 
         $validated = $request->validate([
-            'nama'      => 'required|string|max:255',
-            'kategori'  => 'required|string|max:100',
-            'harga'     => 'required|numeric',
+            'nama' => 'required|string|max:255',
+            'kategori' => 'required|string|max:100',
+            'harga' => 'required|numeric',
             'deskripsi' => 'nullable|string',
-            'gambar.*'  => 'nullable|image|max:2048',
+            'gambar.*' => 'nullable|image|max:2048',
         ]);
 
         $produk = Produk::findOrFail($id);
@@ -101,7 +101,7 @@ class KatalogController extends Controller
                 $path = $file->store('produk', 'public');
                 ProdukGambar::create([
                     'produk_id' => $produk->id,
-                    'gambar'    => $path,
+                    'gambar' => $path,
                 ]);
             }
         }

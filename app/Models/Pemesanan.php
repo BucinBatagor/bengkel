@@ -2,21 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Produk;
 
 class Pemesanan extends Model
 {
+    use HasFactory;
+
     protected $table = 'pemesanan';
 
     protected $fillable = [
-        'pelanggan_id',
-        'produk_id',
         'order_id',
-        'total_harga',
-        'panjang',
-        'lebar',
-        'tinggi',
+        'pelanggan_id',
         'status',
+        'total_harga',
         'snap_token',
         'midtrans_response',
     ];
@@ -33,5 +33,10 @@ class Pemesanan extends Model
     public function produk()
     {
         return $this->belongsTo(Produk::class);
+    }
+
+    public function details()
+    {
+        return $this->hasMany(PemesananDetail::class, 'pemesanan_id');
     }
 }

@@ -59,7 +59,6 @@
                         onerror="this.onerror=null;this.src='{{ asset('assets/default.jpg') }}';"
                         alt="{{ $produk->nama }}"
                         class="w-full h-48 object-cover" />
-
                     <div class="p-4">
                         <h3 class="text-sm font-semibold mb-1">{{ $produk->nama }}</h3>
                         <p class="text-xs text-gray-500 mb-1">{{ $produk->kategori }}</p>
@@ -77,7 +76,6 @@
 
             <div class="flex justify-center mt-auto">
                 <ul class="inline-flex items-center text-sm">
-                    {{-- Panah ke halaman pertama dan sebelumnya --}}
                     <div class="inline-flex space-x-1 mr-2">
                         @if ($produks->onFirstPage())
                         <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
@@ -94,7 +92,6 @@
                         @endif
                     </div>
 
-                    {{-- Nomor halaman --}}
                     <div class="inline-flex space-x-1 mx-2">
                         @php
                         $current = $produks->currentPage();
@@ -102,21 +99,20 @@
                         $start = max(1, $current - 2);
                         $end = min($last, $start + 4);
                         if ($end - $start < 4) {
-                            $start=max(1, $end - 4);
-                            }
-                            @endphp
+                            $start = max(1, $end - 4);
+                        }
+                        @endphp
 
-                            @for ($i=$start; $i <=$end; $i++)
-                            <li>
+                        @for ($i = $start; $i <= $end; $i++)
+                        <li>
                             <a href="{{ $produks->appends(request()->except('page'))->url($i) }}"
                                 class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
                                 {{ $i }}
                             </a>
-                            </li>
-                            @endfor
+                        </li>
+                        @endfor
                     </div>
 
-                    {{-- Panah ke halaman berikutnya dan terakhir --}}
                     <div class="inline-flex space-x-1 ml-2">
                         @if ($produks->hasMorePages())
                         <li>
@@ -134,7 +130,6 @@
                     </div>
                 </ul>
             </div>
-
         </div>
     </div>
 </section>

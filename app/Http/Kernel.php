@@ -6,26 +6,16 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
-    /**
-     * Global HTTP middleware stack.
-     *
-     * These middleware are run during every request to your application.
-     */
     protected $middleware = [
-        // Middleware global
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        // Tambahkan middleware custom Anda di sini:
         \App\Http\Middleware\SeparateSessionByGuard::class,
     ];
 
-    /**
-     * The application's route middleware groups.
-     */
     protected $middlewareGroups = [
         'web' => [
             \App\Http\Middleware\EncryptCookies::class,
@@ -43,9 +33,6 @@ class Kernel extends HttpKernel
         ],
     ];
 
-    /**
-     * Route middleware yang bisa dipanggil di route atau controller.
-     */
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,

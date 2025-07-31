@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pelanggan;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\Produk;
 
 class BerandaController extends Controller
@@ -20,12 +20,12 @@ class BerandaController extends Controller
             $produk = $produkSemua->firstWhere('kategori', $kategori);
 
             return [
-                'nama'        => ucfirst($kategori),
-                'img'         => optional(value: $produk->gambar->first())->gambar ?? 'assets/default.jpg',
-                'slug'        => $kategori,
-                'id'          => $produk->id,
+                'nama' => ucfirst($kategori),
+                'img' => optional($produk->gambar->first())->gambar ?? 'assets/default.jpg',
+                'slug' => $kategori,
+                'id' => $produk->id,
                 'nama_produk' => $produk->nama,
-                'harga'       => $produk->harga,
+                'harga' => $produk->harga,
             ];
         });
 

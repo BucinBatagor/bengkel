@@ -12,9 +12,12 @@ class Pelanggan extends Authenticatable
 
     protected $table = 'pelanggan';
 
-    protected $fillable = ['name', 'email', 'phone', 'address', 'password',];
+    protected $fillable = ['name', 'email', 'phone', 'address', 'password'];
 
-    protected $hidden = ['password', 'remember_token',];
+    protected $hidden = ['password', 'remember_token'];
 
-    protected $casts = ['email_verified_at' => 'datetime', 'password' => 'hashed',];
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 }
