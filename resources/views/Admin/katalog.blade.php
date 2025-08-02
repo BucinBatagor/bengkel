@@ -3,31 +3,61 @@
 @section('title', 'Kelola Katalog')
 
 @section('content')
-<section class="min-h-[700px] flex flex-col items-center px-6 py-6" x-data="{ show: false, deleteUrl: '' }">
-    <div class="w-full max-w-screen-xl bg-white px-8 py-6 rounded-lg shadow flex-1">
+<section class="flex flex-col items-center px-6 py-6 w-full" x-data="{ show: false, deleteUrl: '' }">
+    <div class="bg-white rounded-lg shadow px-6 py-6 w-full">
         <h1 class="text-2xl font-bold mb-6">KELOLA KATALOG PRODUK</h1>
 
-        <div class="flex justify-between items-center mb-4">
-            <a href="{{ route('admin.katalog.create') }}" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 shadow">
+        <div class="block md:hidden mb-6 space-y-4">
+            <form method="GET" action="{{ route('admin.katalog.index') }}" class="flex w-full">
+                <div class="relative flex w-full">
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        placeholder="Cari nama produk..."
+                        class="border border-gray-300 rounded-l px-3 py-2 w-full focus:outline-none focus:ring focus:border-black pr-10">
+                    @if(request('search'))
+                    <button type="button"
+                        onclick="window.location.href='{{ route('admin.katalog.index', array_merge(request()->except(['search', 'page'])) ) }}'"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black text-lg">
+                        &times;
+                    </button>
+                    @endif
+                </div>
+                <input type="hidden" name="sort" value="{{ request('sort') }}">
+                <input type="hidden" name="order" value="{{ request('order') }}">
+                <button type="submit"
+                    class="bg-black text-white px-4 py-2 rounded-r hover:bg-gray-800 border border-l-0 border-gray-300">
+                    Cari
+                </button>
+            </form>
+
+            <a href="{{ route('admin.katalog.create') }}"
+                class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 shadow w-full text-center">
+                + Tambah Produk
+            </a>
+        </div>
+
+        <div class="hidden md:flex md:items-center md:justify-between mb-6">
+            <a href="{{ route('admin.katalog.create') }}"
+                class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 shadow">
                 + Tambah Produk
             </a>
 
-            <form method="GET" action="{{ route('admin.katalog.index') }}" class="flex items-center gap-2 relative">
-                <input type="text" name="search" id="searchInput" value="{{ request('search') }}"
-                    placeholder="Cari nama produk..."
-                    class="border px-3 py-2 rounded focus:outline-none focus:ring focus:border-black pr-8">
-
-                @if(request('search'))
-                <button type="button"
-                    onclick="window.location.href='{{ route('admin.katalog.index') }}'"
-                    class="absolute right-20 text-gray-400 hover:text-black text-lg px-1">
-                    &times;
-                </button>
-                @endif
-
+            <form method="GET" action="{{ route('admin.katalog.index') }}" class="flex">
+                <div class="relative flex w-[250px]">
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        placeholder="Cari nama produk..."
+                        class="border border-gray-300 rounded-l px-3 py-2 w-full focus:outline-none focus:ring focus:border-black pr-10">
+                    @if(request('search'))
+                    <button type="button"
+                        onclick="window.location.href='{{ route('admin.katalog.index', array_merge(request()->except(['search', 'page'])) ) }}'"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black text-lg">
+                        &times;
+                    </button>
+                    @endif
+                </div>
                 <input type="hidden" name="sort" value="{{ request('sort') }}">
                 <input type="hidden" name="order" value="{{ request('order') }}">
-                <button type="submit" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+                <button type="submit"
+                    class="bg-black text-white px-4 py-2 rounded-r hover:bg-gray-800 border border-l-0 border-gray-300">
                     Cari
                 </button>
             </form>
@@ -44,7 +74,7 @@
                             <a href="{{ route('admin.katalog.index', ['sort' => 'nama', 'order' => $nextOrder, 'search' => request('search')]) }}"
                                 class="flex items-center gap-1">Nama
                                 @if (request('sort') === 'nama')
-                                    {!! request('order') === 'asc' ? '&#9650;' : '&#9660;' !!}
+                                {!! request('order') === 'asc' ? '&#9650;' : '&#9660;' !!}
                                 @endif
                             </a>
                         </th>
@@ -53,7 +83,7 @@
                             <a href="{{ route('admin.katalog.index', ['sort' => 'kategori', 'order' => $nextOrder, 'search' => request('search')]) }}"
                                 class="flex items-center gap-1">Kategori
                                 @if (request('sort') === 'kategori')
-                                    {!! request('order') === 'asc' ? '&#9650;' : '&#9660;' !!}
+                                {!! request('order') === 'asc' ? '&#9650;' : '&#9660;' !!}
                                 @endif
                             </a>
                         </th>
@@ -62,7 +92,7 @@
                             <a href="{{ route('admin.katalog.index', ['sort' => 'harga', 'order' => $nextOrder, 'search' => request('search')]) }}"
                                 class="flex items-center gap-1">Harga
                                 @if (request('sort') === 'harga')
-                                    {!! request('order') === 'asc' ? '&#9650;' : '&#9660;' !!}
+                                {!! request('order') === 'asc' ? '&#9650;' : '&#9660;' !!}
                                 @endif
                             </a>
                         </th>
@@ -102,47 +132,42 @@
         </div>
     </div>
 
-    <div class="flex justify-center mt-auto pt-10">
-        <ul class="inline-flex items-center text-sm">
-            <div class="inline-flex space-x-1 mr-2">
-                @if ($produks->onFirstPage())
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
-                @else
-                    <li><a href="{{ $produks->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
-                    <li><a href="{{ $produks->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
-                @endif
-            </div>
+    <div class="flex justify-center mt-8">
+        <ul class="flex flex-wrap items-center gap-1 text-sm">
+            @if ($produks->onFirstPage())
+            <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
+            <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
+            @else
+            <li><a href="{{ $produks->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
+            <li><a href="{{ $produks->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
+            @endif
 
-            <div class="inline-flex space-x-1 mx-2">
-                @php
-                    $current = $produks->currentPage();
-                    $last = $produks->lastPage();
-                    $start = max(1, $current - 2);
-                    $end = min($last, $start + 4);
-                    if ($end - $start < 4) {
-                        $start = max(1, $end - 4);
-                    }
-                @endphp
-                @for ($i = $start; $i <= $end; $i++)
-                    <li>
-                        <a href="{{ $produks->url($i) }}"
-                            class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
-                            {{ $i }}
-                        </a>
-                    </li>
-                @endfor
-            </div>
+            @php
+                $current = $produks->currentPage();
+                $last = $produks->lastPage();
+                $start = max(1, $current - 2);
+                $end = min($last, $start + 4);
+                if ($end - $start < 4) {
+                    $start = max(1, $end - 4);
+                }
+            @endphp
 
-            <div class="inline-flex space-x-1 ml-2">
-                @if ($produks->hasMorePages())
-                    <li><a href="{{ $produks->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
-                    <li><a href="{{ $produks->url($produks->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
-                @else
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
-                @endif
-            </div>
+            @for ($i = $start; $i <= $end; $i++)
+            <li>
+                <a href="{{ $produks->url($i) }}"
+                    class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
+                    {{ $i }}
+                </a>
+            </li>
+            @endfor
+
+            @if ($produks->hasMorePages())
+            <li><a href="{{ $produks->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
+            <li><a href="{{ $produks->url($produks->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
+            @else
+            <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
+            <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
+            @endif
         </ul>
     </div>
 

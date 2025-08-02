@@ -6,7 +6,6 @@
     <title>@yield('title')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="icon" href="{{ asset('assets/LogoBengkel.png') }}" type="image/png">
-
     <style>
         input[type="password"]::-ms-reveal,
         input[type="password"]::-ms-clear,

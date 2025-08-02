@@ -56,25 +56,19 @@
     <h2>LAPORAN PENDAPATAN</h2>
 
     @php
-    $groupedByYear = $pemesanan->groupBy(function($item) {
-        return \Carbon\Carbon::parse($item->created_at)->format('Y');
-    });
-    $totalKeseluruhan = $pemesanan->sum('total_harga');
+        $groupedByYear = $pemesanan->groupBy(fn($item) => \Carbon\Carbon::parse($item->created_at)->format('Y'));
+        $totalKeseluruhan = $pemesanan->sum('total_harga');
     @endphp
 
     @foreach ($groupedByYear as $year => $itemsInYear)
         <h2>Tahun: {{ $year }}</h2>
 
         @php
-        $groupedByMonth = $itemsInYear->groupBy(function($item) {
-            return \Carbon\Carbon::parse($item->created_at)->format('m');
-        });
+            $groupedByMonth = $itemsInYear->groupBy(fn($item) => \Carbon\Carbon::parse($item->created_at)->format('m'));
         @endphp
 
         @foreach ($groupedByMonth as $month => $itemsInMonth)
-            <h3>
-                Bulan: {{ \Carbon\Carbon::createFromFormat('!m', $month)->translatedFormat('F') }}
-            </h3>
+            <h3>Bulan: {{ \Carbon\Carbon::createFromFormat('!m', $month)->translatedFormat('F') }}</h3>
 
             <table>
                 <thead>
