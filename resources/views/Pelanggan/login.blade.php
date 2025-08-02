@@ -3,16 +3,24 @@
 @section('title', 'Login')
 
 @section('content')
-<section class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+<section class="min-h-screen flex items-center justify-center px-4 bg-gray-100">
+    <div class="bg-white p-6 sm:p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Login</h2>
 
-        <form method="POST" action="{{ route('login') }}">
+        @if ($errors->any())
+            <div class="mb-4 text-red-600 text-sm">
+                @foreach ($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('login') }}" class="space-y-4">
             @csrf
             <input type="hidden" name="next" value="{{ request('next') }}">
 
-            <div class="mb-4">
-                <label for="email" class="block mb-1 font-medium">Email</label>
+            <div>
+                <label for="email" class="block text-sm font-medium">Email</label>
                 <input
                     type="email"
                     name="email"
@@ -20,17 +28,33 @@
                     value="{{ old('email') }}"
                     required
                     autofocus
-                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
+                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                >
             </div>
 
-            <div class="mb-4">
-                <label for="password" class="block mb-1 font-medium">Password</label>
+            <div class="relative">
+                <label for="password" class="block text-sm font-medium mb-1">Password</label>
                 <input
                     type="password"
                     name="password"
                     id="password"
                     required
-                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
+                    class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
+                >
+                <span
+                    id="togglePassword"
+                    class="absolute top-[33px] right-3 cursor-pointer text-gray-500"
+                >
+                    <i class="fa-solid fa-eye-slash" id="eyeIcon"></i>
+                </span>
+            </div>
+
+            <div class="flex justify-between items-center text-sm">
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" name="remember" class="form-checkbox">
+                    <span>Ingat Saya</span>
+                </label>
+                <a href="{{ route('password.request') }}" class="text-blue-600 hover:underline">Lupa Password?</a>
             </div>
 
             <button
@@ -40,18 +64,31 @@
             </button>
         </form>
 
-        @if ($errors->any())
-            <div class="mt-4 text-red-600 text-sm">
-                @foreach ($errors->all() as $error)
-                    <p>{{ $error }}</p>
-                @endforeach
-            </div>
-        @endif
-
-        <p class="mt-4 text-center text-sm">
+        <p class="mt-4 text-center text-sm text-gray-600">
             Belum punya akun?
             <a href="{{ route('register') }}" class="text-blue-600 hover:underline">Daftar</a>
         </p>
     </div>
 </section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', function () {
+            const isHidden = passwordInput.type === 'password';
+            passwordInput.type = isHidden ? 'text' : 'password';
+
+            if (isHidden) {
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            } else {
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            }
+        });
+    });
+</script>
 @endsection

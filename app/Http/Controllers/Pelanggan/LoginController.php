@@ -20,9 +20,11 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::guard('web')->attempt($credentials, $request->filled('remember'))) {
+        $remember = $request->filled('remember');
+
+        if (Auth::guard('pelanggan')->attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended($request->input('next', '/'));
+            return redirect()->intended($request->input('next', '/beranda'));
         }
 
         return back()->withErrors([
@@ -32,7 +34,7 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout();
+        Auth::guard('pelanggan')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
