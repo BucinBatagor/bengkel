@@ -58,13 +58,8 @@
             const isHidden = passwordInput.type === 'password';
             passwordInput.type = isHidden ? 'text' : 'password';
 
-            if (isHidden) {
-                eyeIcon.classList.remove('fa-eye-slash');
-                eyeIcon.classList.add('fa-eye');
-            } else {
-                eyeIcon.classList.remove('fa-eye');
-                eyeIcon.classList.add('fa-eye-slash');
-            }
+            eyeIcon.classList.toggle('fa-eye', isHidden);
+            eyeIcon.classList.toggle('fa-eye-slash', !isHidden);
         });
     });
 </script>

@@ -152,7 +152,7 @@ class PesananController extends Controller
 
             return redirect()->back()->with('success', 'Permintaan refund telah dikirim.');
         } catch (\Exception $e) {
-            \Log::error('Error batal pesanan: '.$e->getMessage());
+            \Log::error('Error batal pesanan: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal membatalkan pesanan: ');
         }
     }

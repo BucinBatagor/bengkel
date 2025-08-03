@@ -6,7 +6,6 @@
 <section class="py-10 min-h-screen bg-gray-200">
     <div class="max-w-screen-xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-6">
 
-        <!-- Sidebar -->
         <aside class="md:col-span-1">
             <div class="bg-white shadow rounded-xl p-4 space-y-2">
                 <a href="{{ route('profil.edit') }}"
@@ -22,7 +21,6 @@
             </div>
         </aside>
 
-        <!-- Form Ubah Password -->
         <div class="md:col-span-3">
             <div class="bg-white shadow-lg rounded-xl p-6">
                 <h1 class="text-2xl font-bold mb-6">Ganti Password</h1>
@@ -40,7 +38,6 @@
                     @endforeach
                 </div>
                 @endif
-
 
                 <form action="{{ route('profil.update-password') }}" method="POST" class="space-y-4" autocomplete="off">
                     @csrf
@@ -89,14 +86,8 @@
         function toggleVisibility(input, icon) {
             const isHidden = input.type === 'password';
             input.type = isHidden ? 'text' : 'password';
-
-            if (isHidden) {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            } else {
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            }
+            icon.classList.toggle('fa-eye-slash', !isHidden);
+            icon.classList.toggle('fa-eye', isHidden);
         }
 
         togglePassword.addEventListener('click', function() {

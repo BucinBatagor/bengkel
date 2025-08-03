@@ -26,10 +26,8 @@
             display: none !important;
             visibility: hidden !important;
         }
-    
     </style>
 </head>
-
 
 <body class="flex flex-col min-h-screen bg-white">
     @include('Template.navbar')

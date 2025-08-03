@@ -70,7 +70,6 @@
             </div>
         </div>
 
-        {{-- Pagination di luar kotak putih --}}
         <div class="flex justify-center">
             <ul class="inline-flex items-center text-sm">
                 <div class="inline-flex space-x-1 mr-2">

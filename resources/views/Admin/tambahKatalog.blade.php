@@ -13,32 +13,62 @@
             <div class="grid grid-cols-1 gap-6">
                 <div>
                     <label for="nama" class="block font-semibold mb-1">Nama Produk</label>
-                    <input type="text" name="nama" id="nama" value="{{ old('nama') }}" required
-                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black">
+                    <input
+                        type="text"
+                        name="nama"
+                        id="nama"
+                        value="{{ old('nama') }}"
+                        required
+                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black"
+                    >
                 </div>
 
                 <div>
                     <label for="kategori" class="block font-semibold mb-1">Kategori</label>
-                    <input type="text" name="kategori" id="kategori" value="{{ old('kategori') }}" required
-                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black">
+                    <input
+                        type="text"
+                        name="kategori"
+                        id="kategori"
+                        value="{{ old('kategori') }}"
+                        required
+                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black"
+                    >
                 </div>
 
                 <div>
                     <label for="deskripsi" class="block font-semibold mb-1">Deskripsi</label>
-                    <textarea name="deskripsi" id="deskripsi" rows="4" required
-                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black">{{ old('deskripsi') }}</textarea>
+                    <textarea
+                        name="deskripsi"
+                        id="deskripsi"
+                        rows="4"
+                        required
+                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black"
+                    >{{ old('deskripsi') }}</textarea>
                 </div>
 
                 <div>
-                    <label for="harga" class="block font-semibold mb-1">Harga <span class="text-gray-600 text-sm">/ m²</span></label>
-                    <input type="text" name="harga" id="harga" value="{{ old('harga') }}" required
-                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black">
+                    <label for="harga" class="block font-semibold mb-1">
+                        Harga <span class="text-gray-600 text-sm">/ m²</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="harga"
+                        id="harga"
+                        value="{{ old('harga') }}"
+                        required
+                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black"
+                    >
                 </div>
 
                 <div>
                     <label for="gambar" class="block font-semibold mb-1">Gambar Produk (bisa lebih dari satu)</label>
-                    <input type="file" name="gambar[]" id="gambar" multiple
-                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black">
+                    <input
+                        type="file"
+                        name="gambar[]"
+                        id="gambar"
+                        multiple
+                        class="w-full border px-4 py-2 rounded focus:outline-none focus:ring focus:border-black"
+                    >
                 </div>
             </div>
 
@@ -53,7 +83,7 @@
 
 <script>
     const hargaInput = document.getElementById('harga');
-    hargaInput.addEventListener('input', function(e) {
+    hargaInput.addEventListener('input', function () {
         let value = this.value.replace(/\./g, '').replace(/\D/g, '');
         this.value = value ? parseInt(value).toLocaleString('id-ID') : '';
     });

@@ -21,7 +21,7 @@ class ProfilController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email'],
-            'phone' => ['required', 'regex:/^[1-9][0-9]{8,14}$/'], // Tidak boleh diawali 0
+            'phone' => ['required', 'regex:/^[1-9][0-9]{8,14}$/'],
             'address' => ['required', 'string'],
         ], [
             'name.required' => 'Nama wajib diisi.',
@@ -37,7 +37,7 @@ class ProfilController extends Controller
         $input = [
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => '0' . ltrim($request->phone, '0'), // simpan ke DB sebagai 08...
+            'phone' => '0' . ltrim($request->phone, '0'),
             'address' => $request->address,
         ];
 

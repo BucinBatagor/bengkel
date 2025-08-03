@@ -23,8 +23,13 @@
 
             <div class="relative">
                 <label for="password" class="block text-sm font-medium mb-1">Password Baru</label>
-                <input type="password" name="password" id="password" required
-                    class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200">
+                <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    required
+                    class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
+                >
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="togglePassword">
                     <i class="fa-solid fa-eye-slash" id="eyeIcon1"></i>
                 </span>
@@ -32,15 +37,19 @@
 
             <div class="relative">
                 <label for="password_confirmation" class="block text-sm font-medium mb-1">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" id="password_confirmation" required
-                    class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200">
+                <input
+                    type="password"
+                    name="password_confirmation"
+                    id="password_confirmation"
+                    required
+                    class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
+                >
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="toggleConfirmPassword">
                     <i class="fa-solid fa-eye-slash" id="eyeIcon2"></i>
                 </span>
             </div>
 
-            <button type="submit"
-                class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">
+            <button type="submit" class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">
                 Simpan Password Baru
             </button>
         </form>
@@ -64,22 +73,12 @@
             const isHidden = input.type === 'password';
             input.type = isHidden ? 'text' : 'password';
 
-            if (isHidden) {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            } else {
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            }
+            icon.classList.toggle('fa-eye', isHidden);
+            icon.classList.toggle('fa-eye-slash', !isHidden);
         }
 
-        togglePassword.addEventListener('click', function () {
-            toggleVisibility(passwordInput, eyeIcon1);
-        });
-
-        toggleConfirmPassword.addEventListener('click', function () {
-            toggleVisibility(confirmPasswordInput, eyeIcon2);
-        });
+        togglePassword.addEventListener('click', () => toggleVisibility(passwordInput, eyeIcon1));
+        toggleConfirmPassword.addEventListener('click', () => toggleVisibility(confirmPasswordInput, eyeIcon2));
     });
 </script>
 @endsection

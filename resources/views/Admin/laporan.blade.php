@@ -23,25 +23,25 @@
             </div>
         </form>
 
-        @if(request('from') && request('to') && $pemesanan->count())
-        <p class="text-sm text-gray-600 mb-4">
-            Menampilkan laporan dari
-            <strong>{{ \Carbon\Carbon::parse(request('from'))->translatedFormat('d F Y') }}</strong>
-            sampai
-            <strong>{{ \Carbon\Carbon::parse(request('to'))->translatedFormat('d F Y') }}</strong>
-        </p>
+        @if (request('from') && request('to') && $pemesanan->count())
+            <p class="text-sm text-gray-600 mb-4">
+                Menampilkan laporan dari
+                <strong>{{ \Carbon\Carbon::parse(request('from'))->translatedFormat('d F Y') }}</strong>
+                sampai
+                <strong>{{ \Carbon\Carbon::parse(request('to'))->translatedFormat('d F Y') }}</strong>
+            </p>
 
-        <div class="mb-4 flex flex-wrap gap-3">
-            <a href="{{ route('admin.laporan.export', ['from' => request('from'), 'to' => request('to'), 'format' => 'pdf']) }}"
-                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Export PDF</a>
-        </div>
-        @elseif(request('from') && request('to'))
-        <p class="text-sm text-gray-600 mb-4">
-            Tidak ada data <strong>selesai</strong> dalam rentang waktu
-            <strong>{{ \Carbon\Carbon::parse(request('from'))->translatedFormat('d F Y') }}</strong>
-            sampai
-            <strong>{{ \Carbon\Carbon::parse(request('to'))->translatedFormat('d F Y') }}</strong>.
-        </p>
+            <div class="mb-4 flex flex-wrap gap-3">
+                <a href="{{ route('admin.laporan.export', ['from' => request('from'), 'to' => request('to'), 'format' => 'pdf']) }}"
+                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Export PDF</a>
+            </div>
+        @elseif (request('from') && request('to'))
+            <p class="text-sm text-gray-600 mb-4">
+                Tidak ada data <strong>selesai</strong> dalam rentang waktu
+                <strong>{{ \Carbon\Carbon::parse(request('from'))->translatedFormat('d F Y') }}</strong>
+                sampai
+                <strong>{{ \Carbon\Carbon::parse(request('to'))->translatedFormat('d F Y') }}</strong>.
+            </p>
         @endif
 
         <div class="overflow-x-auto rounded">
@@ -58,37 +58,43 @@
                 </thead>
                 <tbody class="text-gray-700">
                     @forelse ($pemesanan as $i => $pesanan)
-                    <tr class="hover:bg-gray-100 border-b border-gray-300">
-                        <td class="px-5 py-3 border-r border-gray-200">{{ $pemesanan->firstItem() + $loop->index }}</td>
-                        <td class="px-5 py-3 border-r border-gray-200">{{ \Carbon\Carbon::parse($pesanan->created_at)->format('d/m/Y') }}</td>
-                        <td class="px-5 py-3 border-r border-gray-200">{{ $pesanan->pelanggan->name }}</td>
-                        <td class="px-5 py-3 border-r border-gray-200">
-                            @foreach($pesanan->details as $detail)
-                            <div>{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
-                            @endforeach
-                        </td>
-                        <td class="px-5 py-3 border-r border-gray-200">
-                            Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}
-                        </td>
-                        <td class="px-5 py-3">
-                            <span class="inline-block px-2 py-1 rounded text-xs font-medium
-                                @switch($pesanan->status)
-                                    @case('selesai') bg-green-100 text-green-800 @break
-                                    @case('dikerjakan') bg-purple-100 text-purple-800 @break
-                                    @case('diproses') bg-blue-100 text-blue-800 @break
-                                    @default bg-yellow-100 text-yellow-800
-                                @endswitch
-                            ">
-                                {{ ucfirst($pesanan->status) }}
-                            </span>
-                        </td>
-                    </tr>
+                        <tr class="hover:bg-gray-100 border-b border-gray-300">
+                            <td class="px-5 py-3 border-r border-gray-200">
+                                {{ $pemesanan->firstItem() + $loop->index }}
+                            </td>
+                            <td class="px-5 py-3 border-r border-gray-200">
+                                {{ \Carbon\Carbon::parse($pesanan->created_at)->format('d/m/Y') }}
+                            </td>
+                            <td class="px-5 py-3 border-r border-gray-200">
+                                {{ $pesanan->pelanggan->name }}
+                            </td>
+                            <td class="px-5 py-3 border-r border-gray-200">
+                                @foreach ($pesanan->details as $detail)
+                                    <div>{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
+                                @endforeach
+                            </td>
+                            <td class="px-5 py-3 border-r border-gray-200">
+                                Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}
+                            </td>
+                            <td class="px-5 py-3">
+                                <span class="inline-block px-2 py-1 rounded text-xs font-medium
+                                    @switch($pesanan->status)
+                                        @case('selesai') bg-green-100 text-green-800 @break
+                                        @case('dikerjakan') bg-purple-100 text-purple-800 @break
+                                        @case('diproses') bg-blue-100 text-blue-800 @break
+                                        @default bg-yellow-100 text-yellow-800
+                                    @endswitch
+                                ">
+                                    {{ ucfirst($pesanan->status) }}
+                                </span>
+                            </td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="6" class="text-center text-gray-500 py-10 text-base font-semibold">
-                            Tidak ada data pemesanan yang tersedia.
-                        </td>
-                    </tr>
+                        <tr>
+                            <td colspan="6" class="text-center text-gray-500 py-10 text-base font-semibold">
+                                Tidak ada data pemesanan yang tersedia.
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -99,42 +105,42 @@
         <ul class="inline-flex items-center text-sm">
             <div class="inline-flex space-x-1 mr-2">
                 @if ($pemesanan->onFirstPage())
-                <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
-                <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
+                    <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
+                    <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
                 @else
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
+                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
+                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
                 @endif
             </div>
 
             <div class="inline-flex space-x-1 mx-2">
                 @php
-                $current = $pemesanan->currentPage();
-                $last = $pemesanan->lastPage();
-                $start = max(1, $current - 2);
-                $end = min($last, $start + 4);
-                if ($end - $start < 4) {
-                    $start = max(1, $end - 4);
-                }
+                    $current = $pemesanan->currentPage();
+                    $last = $pemesanan->lastPage();
+                    $start = max(1, $current - 2);
+                    $end = min($last, $start + 4);
+                    if ($end - $start < 4) {
+                        $start = max(1, $end - 4);
+                    }
                 @endphp
 
                 @for ($i = $start; $i <= $end; $i++)
-                <li>
-                    <a href="{{ $pemesanan->appends(request()->except('page'))->url($i) }}"
-                        class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
-                        {{ $i }}
-                    </a>
-                </li>
+                    <li>
+                        <a href="{{ $pemesanan->appends(request()->except('page'))->url($i) }}"
+                            class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
+                            {{ $i }}
+                        </a>
+                    </li>
                 @endfor
             </div>
 
             <div class="inline-flex space-x-1 ml-2">
                 @if ($pemesanan->hasMorePages())
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
+                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
+                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
                 @else
-                <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
-                <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
+                    <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
+                    <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
                 @endif
             </div>
         </ul>

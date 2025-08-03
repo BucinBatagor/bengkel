@@ -12,7 +12,6 @@
     <div class="max-w-screen-xl mx-auto px-4">
         <div class="bg-white rounded-xl shadow p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <!-- Gambar Produk -->
                 <div>
                     <div class="relative mb-4 border rounded-md overflow-hidden h-[400px]">
                         @php
@@ -43,7 +42,6 @@
                     @endif
                 </div>
 
-                <!-- Detail Produk -->
                 <div class="flex flex-col justify-between h-fit p-6 border rounded-md shadow-md bg-white">
                     <div>
                         <h1 class="text-xl font-bold mb-4">{{ $produk->nama }}</h1>
@@ -57,7 +55,6 @@
                             </p>
                         </div>
 
-                        <!-- Tombol Masukkan Keranjang -->
                         <div class="mt-6">
                             @auth
                             <form action="{{ route('keranjang.tambah') }}" method="POST">
@@ -91,7 +88,6 @@
         </div>
     </div>
 
-    <!-- Modal Login -->
     <div x-show="showLoginPrompt" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
         <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
             <h2 class="text-lg font-bold mb-4">Anda belum login</h2>
@@ -107,7 +103,6 @@
         </div>
     </div>
 
-    <!-- Modal Sukses -->
     <div x-show="showSuccessModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
         <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
             <p class="text-sm text-gray-600 mb-6">{{ session('success') }}</p>

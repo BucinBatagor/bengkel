@@ -35,9 +35,18 @@
                                             <h2 class="font-semibold text-lg" x-text="item.nama"></h2>
                                             <p class="text-sm text-gray-600" x-text="formatRp(item.harga) + ' / m²'"></p>
                                             <div class="flex gap-2 flex-wrap mt-2">
-                                                <div class="flex flex-col"><label class="text-xs text-gray-500">Panjang</label><input type="number" min="0" step="1" class="border rounded p-2 w-24" x-model.number="item.panjang" @input="checkAutoSelect(item)"></div>
-                                                <div class="flex flex-col"><label class="text-xs text-gray-500">Lebar</label><input type="number" min="0" step="1" class="border rounded p-2 w-24" x-model.number="item.lebar" @input="checkAutoSelect(item)"></div>
-                                                <div class="flex flex-col"><label class="text-xs text-gray-500">Tinggi</label><input type="number" min="0" step="1" class="border rounded p-2 w-24" x-model.number="item.tinggi" @input="checkAutoSelect(item)"></div>
+                                                <div class="flex flex-col">
+                                                    <label class="text-xs text-gray-500">Panjang</label>
+                                                    <input type="number" min="0" step="1" class="border rounded p-2 w-24" x-model.number="item.panjang" @input="checkAutoSelect(item)">
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <label class="text-xs text-gray-500">Lebar</label>
+                                                    <input type="number" min="0" step="1" class="border rounded p-2 w-24" x-model.number="item.lebar" @input="checkAutoSelect(item)">
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <label class="text-xs text-gray-500">Tinggi</label>
+                                                    <input type="number" min="0" step="1" class="border rounded p-2 w-24" x-model.number="item.tinggi" @input="checkAutoSelect(item)">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -55,25 +64,15 @@
         </div>
     </div>
 
-    <!-- Popup -->
-    <div x-show="popup.show"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-90"
-        x-transition:enter-end="opacity-100 scale-100"
-        class="fixed inset-0 z-50 flex items-center justify-center px-4">
-
+    <div x-show="popup.show" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" class="fixed inset-0 z-50 flex items-center justify-center px-4">
         <div class="bg-white rounded-xl border-2 border-gray-300 shadow-2xl p-6 max-w-md w-full">
-
             <h2 class="text-lg font-semibold mb-2" x-text="popup.title"></h2>
             <p class="text-sm text-gray-700 mb-6" x-text="popup.message"></p>
             <div class="flex justify-end gap-2">
                 <template x-if="popup.type === 'confirm'">
                     <button @click="popup.onCancel()" class="px-4 py-2 rounded border text-black bg-white hover:bg-gray-100">Batal</button>
                 </template>
-                <button
-                    :class="popup.type === 'alert' ? 'bg-black text-white hover:bg-gray-800' : 'bg-black text-white hover:bg-gray-800'"
-                    class="px-4 py-2 rounded"
-                    @click="popup.type === 'confirm' ? popup.onConfirm() : popup.show = false">
+                <button :class="popup.type === 'alert' ? 'bg-black text-white hover:bg-gray-800' : 'bg-black text-white hover:bg-gray-800'" class="px-4 py-2 rounded" @click="popup.type === 'confirm' ? popup.onConfirm() : popup.show = false">
                     <span x-text="popup.type === 'confirm' ? 'Lanjutkan' : 'Tutup'"></span>
                 </button>
             </div>
@@ -84,12 +83,7 @@
 <script>
     function keranjangApp(data) {
         return {
-            items: data.map(i => ({
-                ...i,
-                panjang: Number(i.panjang) || 0,
-                lebar: Number(i.lebar) || 0,
-                tinggi: Number(i.tinggi) || 0
-            })),
+            items: data.map(i => ({ ...i, panjang: Number(i.panjang) || 0, lebar: Number(i.lebar) || 0, tinggi: Number(i.tinggi) || 0 })),
             selected: [],
             popup: {
                 show: false,
@@ -117,8 +111,7 @@
                     0;
             },
             totalHarga() {
-                return this.items
-                    .filter(i => this.selected.includes(i.id))
+                return this.items.filter(i => this.selected.includes(i.id))
                     .reduce((sum, i) => sum + this.itemSubtotal(i), 0);
             },
             formatRp(val) {
@@ -146,9 +139,7 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        _method: 'DELETE'
-                    })
+                    body: JSON.stringify({ _method: 'DELETE' })
                 }).then(() => location.reload());
             },
             checkout() {
@@ -176,64 +167,59 @@
                 }
 
                 fetch('{{ route("keranjang.checkout") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            selected_items: selectedItems
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            snap.pay(data.token, {
-                                onSuccess: () => window.location.href = '/pesanan?sukses=true',
-                                onPending: () => window.location.href = '/pesanan?status=pending',
-                                onError: () => {
-                                    console.error(result);
-                                    this.popup = {
-                                        show: true,
-                                        title: 'Pembayaran Gagal',
-                                        message: 'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.',
-                                        type: 'alert'
-                                    };
-                                },
-                                onClose: () => {
-                                    this.popup = {
-                                        show: true,
-                                        title: 'Pembayaran Belum Selesai',
-                                        message: 'Kamu menutup halaman pembayaran. Ingin tetap di halaman keranjang atau lanjut ke pesanan?',
-                                        type: 'confirm',
-                                        onConfirm: () => window.location.href = '/pesanan?status=closed',
-                                        onCancel: () => location.reload()
-                                    };
-                                }
-                            });
-                        } else {
-                            this.popup = {
-                                show: true,
-                                title: 'Kesalahan',
-                                message: data.error || 'Terjadi kesalahan saat memproses checkout.',
-                                type: 'alert'
-                            };
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ selected_items: selectedItems })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        snap.pay(data.token, {
+                            onSuccess: () => window.location.href = '/pesanan?sukses=true',
+                            onPending: () => window.location.href = '/pesanan?status=pending',
+                            onError: () => {
+                                this.popup = {
+                                    show: true,
+                                    title: 'Pembayaran Gagal',
+                                    message: 'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.',
+                                    type: 'alert'
+                                };
+                            },
+                            onClose: () => {
+                                this.popup = {
+                                    show: true,
+                                    title: 'Pembayaran Belum Selesai',
+                                    message: 'Kamu menutup halaman pembayaran. Ingin tetap di halaman keranjang atau lanjut ke pesanan?',
+                                    type: 'confirm',
+                                    onConfirm: () => window.location.href = '/pesanan?status=closed',
+                                    onCancel: () => location.reload()
+                                };
+                            }
+                        });
+                    } else {
                         this.popup = {
                             show: true,
-                            title: 'Kesalahan Jaringan',
-                            message: 'Tidak dapat terhubung ke server. Silakan coba beberapa saat lagi.',
+                            title: 'Kesalahan',
+                            message: data.error || 'Terjadi kesalahan saat memproses checkout.',
                             type: 'alert'
                         };
-                    });
+                    }
+                })
+                .catch(() => {
+                    this.popup = {
+                        show: true,
+                        title: 'Kesalahan Jaringan',
+                        message: 'Tidak dapat terhubung ke server. Silakan coba beberapa saat lagi.',
+                        type: 'alert'
+                    };
+                });
             }
         }
     }
 </script>
-
 
 <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 @endsection

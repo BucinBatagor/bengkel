@@ -42,7 +42,9 @@
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-600">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.085l3.71-3.855a.75.75 0 111.08 1.04l-4.25 4.418a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd"
+                            d="M5.23 7.21a.75.75 0 011.06.02L10 11.085l3.71-3.855a.75.75 0 111.08 1.04l-4.25 4.418a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                            clip-rule="evenodd" />
                     </svg>
                 </div>
             </div>
@@ -64,15 +66,15 @@
                 <tbody class="text-gray-700">
                     @forelse ($pemesanan as $i => $pesanan)
                     @php
-                    $statusColor = match($pesanan->status) {
-                        'menunggu' => 'bg-yellow-100 text-yellow-800',
-                        'dikerjakan' => 'bg-blue-100 text-blue-800',
-                        'selesai' => 'bg-green-100 text-green-800',
-                        'dibatalkan', 'gagal' => 'bg-red-100 text-red-800',
-                        'menunggu_refund' => 'bg-red-100 text-red-800',
-                        'refund_diterima' => 'bg-green-100 text-green-800',
-                        default => 'bg-gray-100 text-gray-800',
-                    };
+                        $statusColor = match($pesanan->status) {
+                            'menunggu' => 'bg-yellow-100 text-yellow-800',
+                            'dikerjakan' => 'bg-blue-100 text-blue-800',
+                            'selesai' => 'bg-green-100 text-green-800',
+                            'dibatalkan', 'gagal' => 'bg-red-100 text-red-800',
+                            'menunggu_refund' => 'bg-red-100 text-red-800',
+                            'refund_diterima' => 'bg-green-100 text-green-800',
+                            default => 'bg-gray-100 text-gray-800',
+                        };
                     @endphp
                     <tr class="hover:bg-gray-100 border-b border-gray-300">
                         <td class="px-5 py-3 border-r">{{ $pemesanan->firstItem() + $loop->index }}</td>
@@ -80,9 +82,7 @@
                         <td class="px-5 py-3 border-r align-top">{{ $pesanan->pelanggan->address ?? '-' }}</td>
                         <td class="px-5 py-3 border-r align-top">
                             @foreach ($pesanan->details as $detail)
-                            <div class="mb-2">
-                                {{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}
-                            </div>
+                            <div class="mb-2">{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
                             @endforeach
                         </td>
                         <td class="px-5 py-3 border-r align-top whitespace-nowrap">
@@ -105,10 +105,10 @@
                                 @csrf
                                 @method('PATCH')
                                 @php
-                                $statusOptions = match($pesanan->status) {
-                                    'menunggu_refund', 'refund_diterima' => ['menunggu_refund', 'refund_diterima'],
-                                    default => ['menunggu', 'dikerjakan', 'selesai'],
-                                };
+                                    $statusOptions = match($pesanan->status) {
+                                        'menunggu_refund', 'refund_diterima' => ['menunggu_refund', 'refund_diterima'],
+                                        default => ['menunggu', 'dikerjakan', 'selesai'],
+                                    };
                                 @endphp
                                 <select name="status" onchange="this.form.submit()"
                                     class="border rounded px-2 py-1 text-sm {{ $statusColor }}">
@@ -139,20 +139,22 @@
                 <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
                 <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
                 @else
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
+                <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}"
+                        class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
+                <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}"
+                        class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
                 @endif
             </div>
 
             <div class="inline-flex space-x-1 mx-2">
                 @php
-                $current = $pemesanan->currentPage();
-                $last = $pemesanan->lastPage();
-                $start = max(1, $current - 2);
-                $end = min($last, $start + 4);
-                if ($end - $start < 4) {
-                    $start = max(1, $end - 4);
-                }
+                    $current = $pemesanan->currentPage();
+                    $last = $pemesanan->lastPage();
+                    $start = max(1, $current - 2);
+                    $end = min($last, $start + 4);
+                    if ($end - $start < 4) {
+                        $start = max(1, $end - 4);
+                    }
                 @endphp
 
                 @for ($i = $start; $i <= $end; $i++)
@@ -167,8 +169,10 @@
 
             <div class="inline-flex space-x-1 ml-2">
                 @if ($pemesanan->hasMorePages())
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
-                <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
+                <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}"
+                        class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
+                <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}"
+                        class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
                 @else
                 <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
                 <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>

@@ -3,7 +3,6 @@
 @section('title', 'Beranda')
 
 @section('content')
-<!-- Jumbotron -->
 <section class="relative flex h-screen items-center justify-center bg-cover bg-[center_72%] text-white" style="background-image: url('/assets/Jumbotron.jpg');">
     <div class="absolute inset-0 bg-black/60"></div>
     <div class="relative z-10 max-w-screen-xl mx-auto w-full flex justify-center px-4">
@@ -14,7 +13,6 @@
     </div>
 </section>
 
-<!-- CTA -->
 <section class="bg-gray-300 py-16">
     <div class="max-w-screen-xl mx-auto px-4 text-center">
         <h2 class="text-3xl font-extrabold mb-6 text-gray-800">Layanan Bengkel Las Terbaik</h2>
@@ -27,7 +25,6 @@
     </div>
 </section>
 
-<!-- Produk Terbaru -->
 <section class="py-16 bg-white">
     <div class="max-w-screen-xl mx-auto px-4">
         <h2 class="text-3xl font-bold mb-10 text-center">Produk Terbaru</h2>
@@ -36,15 +33,15 @@
             @if(count($kategoriList))
                 @foreach ($kategoriList as $kategori)
                     <a href="{{ route('produk.show', $kategori['id']) }}"
-                        class="w-full sm:w-[47%] md:w-[30%] border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition bg-white flex flex-col">
+                       class="w-full sm:w-[47%] md:w-[30%] border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition bg-white flex flex-col">
                         @php
                             $imgPath = !empty($kategori['img']) && file_exists(public_path('storage/' . $kategori['img']))
                                 ? 'storage/' . $kategori['img']
                                 : 'assets/default.jpg';
                         @endphp
                         <img src="{{ asset($imgPath) }}"
-                            alt="{{ $kategori['nama_produk'] }}"
-                            class="w-full h-48 sm:h-52 object-cover" />
+                             alt="{{ $kategori['nama_produk'] }}"
+                             class="w-full h-48 sm:h-52 object-cover" />
                         <div class="p-4 flex flex-col h-full justify-between">
                             <div>
                                 <h3 class="text-lg font-bold mb-1">{{ $kategori['nama_produk'] }}</h3>
