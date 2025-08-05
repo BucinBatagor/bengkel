@@ -11,7 +11,7 @@ class ProfilController extends Controller
 {
     public function edit()
     {
-        return view('pelanggan.profil', [
+        return view('pelanggan.editProfil', [
             'pelanggan' => Auth::user(),
         ]);
     }
@@ -28,7 +28,7 @@ class ProfilController extends Controller
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'phone.required' => 'Nomor HP wajib diisi.',
-            'phone.regex' => 'Nomor HP tidak boleh diawali angka 0 dan harus 9–15 digit.',
+            'phone.regex' => 'Nomor HP harus berupa angka dan 9–15 digit.',
             'address.required' => 'Alamat wajib diisi.',
         ]);
 
@@ -41,6 +41,8 @@ class ProfilController extends Controller
             'address' => $request->address,
         ];
 
+        $emailBerubah = $pelanggan->email !== $request->email;
+
         $tidakBerubah = true;
         foreach ($input as $key => $value) {
             if ($pelanggan->{$key} !== $value) {
@@ -50,10 +52,18 @@ class ProfilController extends Controller
         }
 
         if ($tidakBerubah) {
-            return back()->withErrors(['profil' => 'Tidak ada perubahan pada data Anda.']);
+            return back()->withErrors(['profil' => 'Tidak ada data yang diubah.']);
         }
 
         $pelanggan->fill($input);
+
+        if ($emailBerubah) {
+            $pelanggan->email_verified_at = null;
+            $pelanggan->save();
+            $pelanggan->sendEmailVerificationNotification();
+            return back()->with('success', 'Silakan cek email Anda dan lakukan verifikasi melalui link yang telah dikirim.');
+        }
+
         $pelanggan->save();
 
         return back()->with('success', 'Profil berhasil diperbarui');
@@ -62,14 +72,22 @@ class ProfilController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
+            'current_password' => 'required',
             'password' => 'required|string|min:6|confirmed',
         ], [
-            'password.required' => 'Password wajib diisi.',
+            'current_password.required' => 'Password lama wajib diisi.',
+            'password.required' => 'Password baru wajib diisi.',
             'password.min' => 'Password minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
         $pelanggan = Auth::user();
+
+        if (!Hash::check($request->current_password, $pelanggan->password)) {
+            return back()->withErrors([
+                'current_password' => 'Password lama tidak sesuai.',
+            ])->withInput();
+        }
 
         if (Hash::check($request->password, $pelanggan->password)) {
             return back()->withErrors([

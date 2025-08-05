@@ -10,7 +10,7 @@
                 window.location.href = '/beranda';
             </script>
         @else
-            <h2 class="text-2xl font-bold mb-4">Verifikasi Email</h2>
+            <h2 class="text-2xl font-bold mb-4 text-black">Verifikasi Email</h2>
             <p class="text-gray-700">
                 Kami telah mengirimkan link verifikasi ke alamat email Anda.<br>
                 Silakan periksa kotak masuk dan klik link tersebut untuk mengaktifkan akun Anda.
