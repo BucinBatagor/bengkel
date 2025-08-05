@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 
-class LupaPasswordController extends Controller
+class PermintaanResetController extends Controller
 {
     public function showForm()
     {
-        return view('pelanggan.lupaPassword');
+        return view('pelanggan.permintaanReset');
     }
 
     public function kirimEmail(Request $request)

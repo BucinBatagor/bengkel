@@ -50,7 +50,9 @@ class RegisterController extends Controller
 
             Auth::guard('pelanggan')->login($user);
 
-            return redirect('/beranda');
+            $user->sendEmailVerificationNotification();
+
+            return redirect()->route('verification.notice');
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }

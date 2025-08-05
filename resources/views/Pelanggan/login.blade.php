@@ -7,14 +7,6 @@
     <div class="bg-white p-6 sm:p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Login</h2>
 
-        @if ($errors->any())
-        <div class="mb-4 text-red-600 text-sm">
-            @foreach ($errors->all() as $error)
-            <p>{{ $error }}</p>
-            @endforeach
-        </div>
-        @endif
-
         <form method="POST" action="{{ route('login') }}" class="space-y-4">
             @csrf
             <input type="hidden" name="next" value="{{ request('next') }}">
@@ -22,14 +14,17 @@
             <div>
                 <label for="email" class="block text-sm font-medium">Email</label>
                 <input
-                    type="email"
+                    type="text"
                     name="email"
                     id="email"
                     value="{{ old('email') }}"
-                    required
-                    autofocus
                     class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
                 >
+                @error('email')
+                    @if ($message !== 'Email atau password salah.')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @endif
+                @enderror
             </div>
 
             <div class="relative">
@@ -38,7 +33,6 @@
                     type="password"
                     name="password"
                     id="password"
-                    required
                     class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
                 >
                 <span
@@ -47,6 +41,13 @@
                 >
                     <i class="fa-solid fa-eye-slash" id="eyeIcon"></i>
                 </span>
+                @error('password')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+
+                @if ($errors->has('email') && old('email') && $errors->first('email') === 'Email atau password salah.')
+                    <p class="text-red-600 text-sm mt-1">{{ $errors->first('email') }}</p>
+                @endif
             </div>
 
             <div class="flex justify-between items-center text-sm">

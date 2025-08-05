@@ -27,7 +27,6 @@
                     type="password"
                     name="password"
                     id="password"
-                    required
                     class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
                 >
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="togglePassword">
@@ -41,7 +40,6 @@
                     type="password"
                     name="password_confirmation"
                     id="password_confirmation"
-                    required
                     class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
                 >
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="toggleConfirmPassword">
@@ -53,10 +51,6 @@
                 Simpan Password Baru
             </button>
         </form>
-
-        <p class="mt-4 text-center text-sm text-gray-600">
-            <a href="{{ route('login') }}" class="text-blue-600 hover:underline">Kembali ke Login</a>
-        </p>
     </div>
 </section>
 

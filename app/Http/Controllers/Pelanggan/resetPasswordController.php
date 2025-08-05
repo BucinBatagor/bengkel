@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
-class AturUlangPasswordController extends Controller
+class ResetPasswordController extends Controller
 {
     public function showForm(Request $request, $token)
     {
-        return view('pelanggan.aturUlangPassword', [
+        return view('pelanggan.resetPassword', [
             'token' => $token,
             'email' => $request->email,
         ]);
