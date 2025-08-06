@@ -3,9 +3,9 @@
 @section('title', 'Katalog')
 
 @section('content')
-<section class="py-10 px-5 bg-gray-200">
+<section class="py-10 px-5 bg-gray-200 min-h-screen">
     <div class="max-w-screen-xl mx-auto space-y-6">
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white rounded-lg shadow p-6 h-[540px]">
             <form method="GET" id="filterForm" class="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div class="relative">
                     <select name="kategori" onchange="document.getElementById('filterForm').submit();"
@@ -63,7 +63,7 @@
                     </div>
                 </a>
                 @empty
-                <div class="col-span-full flex items-center justify-center text-gray-500 min-h-[300px]">
+                <div class="col-span-full flex items-center justify-center text-gray-500 min-h-[400px]">
                     <p class="text-center">Tidak ada produk ditemukan.</p>
                 </div>
                 @endforelse

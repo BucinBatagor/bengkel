@@ -8,9 +8,9 @@
         <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Lupa Password Admin</h2>
 
         @if (session('status'))
-            <div class="mb-4 bg-green-100 text-green-800 text-sm px-4 py-3 rounded">
-                {{ session('status') }}
-            </div>
+        <div class="mb-4 bg-green-100 text-green-800 text-sm px-4 py-3 rounded">
+            {{ session('status') }}
+        </div>
         @endif
 
         <form method="POST" action="{{ route('admin.password.email') }}" class="space-y-4">
@@ -25,10 +25,9 @@
                     id="email"
                     value="{{ old('email') }}"
                     required
-                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
-                >
+                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
                 @error('email')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
@@ -36,6 +35,9 @@
                 Kirim Link Reset
             </button>
         </form>
+        <p class="mt-4 text-center text-sm text-gray-600">
+            <a href="{{ route('admin.login') }}" class="text-blue-600 hover:underline">Kembali ke Login</a>
+        </p>
     </div>
 </section>
 @endsection

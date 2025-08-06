@@ -21,7 +21,7 @@
 </head>
 
 <body class="bg-gray-100 text-gray-800">
-    <main class="p-6">
+    <main>
         @yield('content')
     </main>
 </body>

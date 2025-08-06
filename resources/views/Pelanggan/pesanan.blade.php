@@ -8,11 +8,13 @@
     @if (session('error')) showAlert('{{ session('error') }}', 'error') @endif
 ">
     <div class="max-w-screen-xl mx-auto px-4">
-        <div class="bg-white rounded-lg shadow px-6 py-6 min-h-[500px]">
+        <div class="bg-white rounded-lg shadow px-6 py-6 min-h-[540px]">
             <h1 class="text-2xl font-bold mb-6">Status Pesanan</h1>
 
             @if ($pemesanan->isEmpty())
-                <p class="text-gray-600">Belum ada pesanan.</p>
+                <div class="col-span-full flex items-center justify-center text-gray-500 min-h-[400px]">
+                    <p class=" text-center text-gray-600">Belum ada pesanan.</p>
+                </div>
             @else
                 <div class="space-y-6">
                     @foreach ($pemesanan as $pesanan)
