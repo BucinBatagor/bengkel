@@ -7,11 +7,9 @@
     <div class="bg-white p-6 sm:p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Atur Ulang Password</h2>
 
-        @if ($errors->any())
-            <div class="mb-4 text-red-600 text-sm">
-                @foreach ($errors->all() as $error)
-                    <p>{{ $error }}</p>
-                @endforeach
+        @if (session('status'))
+            <div class="mb-4 bg-green-100 text-green-800 text-sm px-4 py-3 rounded">
+                {{ session('status') }}
             </div>
         @endif
 
@@ -32,6 +30,9 @@
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="togglePassword">
                     <i class="fa-solid fa-eye-slash" id="eyeIcon1"></i>
                 </span>
+                @error('password')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="relative">
@@ -45,6 +46,9 @@
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="toggleConfirmPassword">
                     <i class="fa-solid fa-eye-slash" id="eyeIcon2"></i>
                 </span>
+                @error('password_confirmation')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <button type="submit" class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">
@@ -66,7 +70,6 @@
         function toggleVisibility(input, icon) {
             const isHidden = input.type === 'password';
             input.type = isHidden ? 'text' : 'password';
-
             icon.classList.toggle('fa-eye', isHidden);
             icon.classList.toggle('fa-eye-slash', !isHidden);
         }

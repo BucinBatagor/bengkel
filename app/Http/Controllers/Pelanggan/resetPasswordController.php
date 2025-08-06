@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Pelanggan;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Pelanggan;
+use Illuminate\Support\Facades\Password;
 
 class ResetPasswordController extends Controller
 {
@@ -23,20 +24,32 @@ class ResetPasswordController extends Controller
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => 'required|confirmed|min:6',
+            'password' => 'required|min:6|confirmed',
+        ], [
+            'token.required' => 'Token tidak ditemukan.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Email tidak valid.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
         $status = Password::broker('pelanggan')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
+                if (Hash::check($password, $user->password)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'password' => 'Password baru tidak boleh sama dengan password lama.'
+                    ]);
+                }
+
                 $user->password = Hash::make($password);
                 $user->save();
-                Auth::guard('pelanggan')->login($user);
             }
         );
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('beranda')->with('status', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
+            ? redirect()->route('password.berhasil')
+            : back()->withErrors(['email' => __($status)]);
     }
 }

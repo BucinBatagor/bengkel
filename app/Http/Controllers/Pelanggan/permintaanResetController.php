@@ -17,6 +17,9 @@ class PermintaanResetController extends Controller
     {
         $request->validate([
             'email' => 'required|email'
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Email harus berupa alamat email yang valid.',
         ]);
 
         $status = Password::broker('pelanggan')->sendResetLink(
@@ -24,7 +27,7 @@ class PermintaanResetController extends Controller
         );
 
         return $status === Password::RESET_LINK_SENT
-            ? back()->with('status', __($status))
-            : back()->withErrors(['email' => __($status)]);
+            ? back()->with('status', 'Link reset password telah dikirim ke email Anda.')
+            : back()->withErrors(['email' => 'Kami tidak dapat menemukan pengguna dengan email tersebut.']);
     }
 }

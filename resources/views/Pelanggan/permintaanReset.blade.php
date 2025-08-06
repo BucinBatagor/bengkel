@@ -8,16 +8,8 @@
         <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Lupa Password</h2>
 
         @if (session('status'))
-            <div class="mb-4 text-green-600 text-sm">
+            <div class="mb-4 bg-green-100 text-green-800 text-sm px-4 py-3 rounded">
                 {{ session('status') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="mb-4 text-red-600 text-sm">
-                @foreach ($errors->all() as $error)
-                    <p>{{ $error }}</p>
-                @endforeach
             </div>
         @endif
 
@@ -25,21 +17,24 @@
             @csrf
 
             <div>
-                <label for="email" class="block text-sm font-medium">Alamat Email</label>
+                <label for="email" class="block text-sm font-medium">Email</label>
                 <input
-                    type="email"
+                    type="text"
                     name="email"
                     id="email"
                     value="{{ old('email') }}"
                     class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
                 >
+                @error('email')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <button
                 type="submit"
                 class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition"
             >
-                Kirim Link Atur Ulang Password
+                Kirim Link Reset
             </button>
         </form>
 
