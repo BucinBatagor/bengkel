@@ -38,6 +38,11 @@
                     <input type="checkbox" name="remember" class="form-checkbox">
                     <span>Ingat Saya</span>
                 </label>
+
+                <!-- Tambahan link lupa password -->
+                <a href="{{ route('admin.password.request') }}" class="text-blue-600 hover:underline">
+                    Lupa Password?
+                </a>
             </div>
 
             <button type="submit"
