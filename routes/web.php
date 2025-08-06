@@ -10,7 +10,8 @@ use App\Http\Controllers\Admin\KatalogController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\PemesananController;
 use App\Http\Controllers\Admin\LaporanController;
-use App\Http\Controllers\Admin\AturUlangPasswordController; // Tambahkan controller reset admin
+use App\Http\Controllers\Admin\AturUlangPasswordController;
+use App\Http\Controllers\Admin\ProfilController as AdminProfilController;
 
 // Controller untuk Pelanggan
 use App\Http\Controllers\Pelanggan\LoginController;
@@ -29,37 +30,66 @@ use App\Http\Controllers\Pelanggan\PemesananDetailController;
 | ROUTE UNTUK ADMIN
 |--------------------------------------------------------------------------
 */
-
 Route::prefix('admin')->name('admin.')->group(function () {
-    // Autentikasi Admin
+    // — Verifikasi Email Admin —
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+        return view('Admin.verifiedEmailSuccess');
+    })->middleware(['auth:admin', 'signed'])->name('verification.verify');
+
+    // — Autentikasi Admin —
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:admin')->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout'])
+         ->middleware('auth:admin')
+         ->name('logout');
 
-    // Reset Password Admin
-    Route::get('/lupa-password-admin', [AturUlangPasswordController::class, 'showFormRequest'])->name('password.request');
-Route::post('/lupa-password-admin', [AturUlangPasswordController::class, 'sendResetLink'])->name('password.email');
-Route::get('/reset-password-admin/{token}', [AturUlangPasswordController::class, 'showForm'])->name('password.reset');
-Route::post('/reset-password-admin', [AturUlangPasswordController::class, 'reset'])->name('password.update');
-Route::get('/reset-password-sukses-admin', fn() => view('Admin.resetPasswordBerhasil'))->name('password.reset.success');
+    // — Reset Password Admin —
+    Route::get('/lupa-password-admin', [AturUlangPasswordController::class, 'showFormRequest'])
+         ->name('password.request');
+    Route::post('/lupa-password-admin', [AturUlangPasswordController::class, 'sendResetLink'])
+         ->name('password.email');
+    Route::get('/reset-password-admin/{token}', [AturUlangPasswordController::class, 'showForm'])
+         ->name('password.reset');
+    Route::post('/reset-password-admin', [AturUlangPasswordController::class, 'reset'])
+         ->name('password.update');
+    Route::get('/reset-password-sukses-admin', fn() => view('Admin.resetPasswordBerhasil'))
+         ->name('password.reset.success');
 
-
-    // Area Admin (butuh login)
+    // — Area Admin (butuh login) —
     Route::middleware('auth:admin')->group(function () {
-        // Manajemen Katalog Produk
-        Route::delete('/katalog-gambar/{id}', [KatalogController::class, 'hapusGambar'])->name('katalog.gambar.hapus');
+        // Katalog Produk
+        Route::delete('/katalog-gambar/{id}', [KatalogController::class, 'hapusGambar'])
+             ->name('katalog.gambar.hapus');
         Route::resource('katalog', KatalogController::class)->except(['show']);
 
-        // Manajemen Pelanggan
-        Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+        // Pelanggan
+        Route::get('/pelanggan', [PelangganController::class, 'index'])
+             ->name('pelanggan.index');
 
-        // Manajemen Pemesanan
-        Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
-        Route::patch('/pemesanan/{id}', [PemesananController::class, 'updateStatus'])->name('pemesanan.update');
+        // Pemesanan
+        Route::get('/pemesanan', [PemesananController::class, 'index'])
+             ->name('pemesanan.index');
+        Route::patch('/pemesanan/{id}', [PemesananController::class, 'updateStatus'])
+             ->name('pemesanan.update');
 
         // Laporan
-        Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-        Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
+        Route::get('/laporan', [LaporanController::class, 'index'])
+             ->name('laporan.index');
+        Route::get('/laporan/export', [LaporanController::class, 'export'])
+             ->name('laporan.export');
+
+        // Profil Admin
+        Route::get('/profil', [AdminProfilController::class, 'index'])
+             ->name('profil');
+        Route::post('/profil', [AdminProfilController::class, 'update'])
+             ->name('profil.update');
+
+        // Ubah Password Admin
+        Route::get('/ubah-password', [AdminProfilController::class, 'passwordForm'])
+             ->name('profil.password');
+        Route::put('/ubah-password', [AdminProfilController::class, 'updatePassword'])
+             ->name('profil.update-password');
     });
 });
 
@@ -78,10 +108,14 @@ Route::prefix('/')->group(function () {
 
     // Reset Password Pelanggan
     Route::get('/lupa-password', [permintaanResetController::class, 'showForm'])->name('password.request');
-    Route::post('/lupa-password/kirim', [permintaanResetController::class, 'kirimEmail'])->name('password.email');
-    Route::get('/atur-ulang-password/{token}', [resetPasswordController::class, 'showForm'])->name('password.reset');
-    Route::post('/atur-ulang-password', [resetPasswordController::class, 'reset'])->name('password.update');
-    Route::get('/password-berhasil', fn() => view('pelanggan.resetPasswordBerhasil'))->name('password.berhasil');
+    Route::post('/lupa-password/kirim', [permintaanResetController::class, 'kirimEmail'])
+         ->name('password.email');
+    Route::get('/atur-ulang-password/{token}', [resetPasswordController::class, 'showForm'])
+         ->name('password.reset');
+    Route::post('/atur-ulang-password', [resetPasswordController::class, 'reset'])
+         ->name('password.update');
+    Route::get('/password-berhasil', fn() => view('pelanggan.resetPasswordBerhasil'))
+         ->name('password.berhasil');
 
     // Halaman Publik
     Route::get('/', fn() => redirect()->route('beranda'));
@@ -91,7 +125,7 @@ Route::prefix('/')->group(function () {
 
     // Area Login Pelanggan
     Route::middleware('auth:pelanggan')->group(function () {
-        // Verifikasi Email
+        // Verifikasi Email Pelanggan
         Route::get('/email/verify', function () {
             if (auth('pelanggan')->user()?->hasVerifiedEmail()) {
                 return redirect('/beranda');
@@ -109,22 +143,29 @@ Route::prefix('/')->group(function () {
             return back()->with('success', 'Link verifikasi telah dikirim ulang!');
         })->middleware('throttle:6,1')->name('verification.send');
 
-        // Profil
+        // Profil Pelanggan
         Route::get('/profil', [ProfilController::class, 'edit'])->name('profil.edit');
         Route::post('/profil', [ProfilController::class, 'update'])->name('profil.update');
-        Route::get('/ubah-password', fn() => view('pelanggan.resetPasswordProfil'))->name('profil.password');
-        Route::put('/ubah-password', [ProfilController::class, 'updatePassword'])->name('profil.update-password');
+        Route::get('/ubah-password', fn() => view('pelanggan.resetPasswordProfil'))
+             ->name('profil.password');
+        Route::put('/ubah-password', [ProfilController::class, 'updatePassword'])
+             ->name('profil.update-password');
 
         // Keranjang
-        Route::get('/keranjang', [PemesananDetailController::class, 'index'])->name('keranjang.index');
-        Route::post('/keranjang/tambah', [PemesananDetailController::class, 'tambah'])->name('keranjang.tambah');
-        Route::delete('/keranjang/hapus/{id}', [PemesananDetailController::class, 'hapus'])->name('keranjang.hapus');
-        Route::post('/keranjang/checkout', [PemesananDetailController::class, 'checkout'])->name('keranjang.checkout');
+        Route::get('/keranjang', [PemesananDetailController::class, 'index'])
+             ->name('keranjang.index');
+        Route::post('/keranjang/tambah', [PemesananDetailController::class, 'tambah'])
+             ->name('keranjang.tambah');
+        Route::delete('/keranjang/hapus/{id}', [PemesananDetailController::class, 'hapus'])
+             ->name('keranjang.hapus');
+        Route::post('/keranjang/checkout', [PemesananDetailController::class, 'checkout'])
+             ->name('keranjang.checkout');
 
         // Pesanan
         Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
         Route::post('/pesanan/{id}/bayar', [PesananController::class, 'bayar'])->name('pesanan.bayar');
         Route::post('/pesanan/{id}/batal', [PesananController::class, 'batal'])->name('pesanan.batalkan');
-        Route::post('/pesanan/{id}/batalkan-refund', [PesananController::class, 'batalkanRefund'])->name('pesanan.batalkan_refund');
+        Route::post('/pesanan/{id}/batalkan-refund', [PesananController::class, 'batalkanRefund'])
+             ->name('pesanan.batalkan_refund');
     });
 });

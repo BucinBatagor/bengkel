@@ -1,13 +1,14 @@
-@extends('Template.authPelanggan')
+@extends('Template.authAdmin')
 
 @section('title', 'Verifikasi Berhasil')
 
 @section('content')
-<section class="min-h-screen flex items-center justify-center px-4 py-12">
+<section class="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-100">
     <div class="w-full max-w-lg bg-white p-6 sm:p-8 rounded-lg shadow-md text-center">
         <h2 class="text-2xl font-bold mb-4 text-black">Verifikasi Berhasil</h2>
         <p class="text-gray-700">Email Anda telah berhasil diverifikasi.</p>
-        <a href="/profil" class="mt-6 inline-block bg-black text-white px-6 py-2 rounded hover:bg-gray-700 transition">
+        <a href="{{ route('admin.profil') }}" 
+           class="mt-6 inline-block bg-black text-white px-6 py-2 rounded hover:bg-gray-700 transition">
             Ke Profil
         </a>
     </div>

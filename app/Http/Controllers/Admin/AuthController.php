@@ -22,7 +22,7 @@ class AuthController extends Controller
 
         if (Auth::guard('admin')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('admin.katalog.index'));
+            return redirect()->intended(route('admin.pelanggan.index'));
         }
 
         return back()->withErrors([
