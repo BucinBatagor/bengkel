@@ -68,7 +68,13 @@
                         <label class="block font-semibold text-sm mb-1">No. HP</label>
                         <div class="flex rounded border overflow-hidden focus-within:ring focus-within:ring-blue-200">
                             <span class="bg-gray-200 px-3 py-2 text-gray-700 text-sm flex items-center select-none">+62</span>
-                            <input type="text" id="phone" name="phone" maxlength="15" inputmode="numeric" pattern="[0-9]*"
+                            <input type="text"
+                                   id="phone"
+                                   name="phone"
+                                   maxlength="15"
+                                   inputmode="numeric"
+                                   pattern="[0-9]*"
+                                   placeholder="Masukkan nomor WhatsApp aktif Anda"
                                    value="{{ old('phone', ltrim($pelanggan->phone, '0')) }}"
                                    class="w-full px-3 py-2 focus:outline-none bg-white">
                         </div>
