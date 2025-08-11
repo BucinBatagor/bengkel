@@ -1,153 +1,241 @@
+{{-- resources/views/Pelanggan/produk.blade.php --}}
 @extends('Template.pelanggan')
 
 @section('title', 'Detail Produk')
 
 @section('content')
+
+@php
+    $backUrl = request()->query('back');
+    if ($backUrl) {
+        $appBase = url('/');
+        if (!\Illuminate\Support\Str::startsWith($backUrl, $appBase)) {
+            $backUrl = null;
+        }
+    }
+    $backUrl = $backUrl ?: url('/katalog');
+    $waAdmin = $waAdmin ?? '6289644819899';
+@endphp
+
 <section class="py-10 bg-gray-200 min-h-screen"
     x-data="{ 
-        showLoginPrompt: false, 
-        showSuccessModal: {{ session('success') ? 'true' : 'false' }} 
-    }">
+        showLoginPrompt: false,
+        showSuccessModal: {{ session('success') ? 'true' : 'false' }},
+        showImageModal: false,
+        imageModalUrl: '',
+        showConfirmModal: false,
+        showWaitingModal: false,
+        isSubmitting: false,
+        emailSentAdmin: false,
 
-    <div class="max-w-screen-xl mx-auto px-4">
-        <div class="bg-white rounded-xl shadow p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div>
-                    <div class="relative mb-4 border rounded-md overflow-hidden h-[400px]">
-                        @php
-                            $gambarUtama = $produk->gambar->first();
-                            $gambarPath = $gambarUtama
-                                ? 'storage/' . $gambarUtama->gambar
-                                : 'assets/default.jpg';
-                        @endphp
-                        <img id="mainImage" src="{{ asset($gambarPath) }}"
-                            class="w-full h-full object-cover transition duration-300 ease-in-out" />
-                    </div>
+        async pesanSekarang() {
+          if (this.isSubmitting) return;
+          this.isSubmitting = true;
+          this.emailSentAdmin = false;
+          try {
+            const res = await fetch('{{ route('keranjang.pesan') }}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+              },
+              body: JSON.stringify({
+                items: [{{ $produk->id }}],
+                kirim_email: true
+              })
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.emailSentAdmin = !!(data.email_sent_admin ?? false);
+              this.showWaitingModal = true;
+            } else {
+              alert(data.error || 'Gagal membuat pesanan.');
+            }
+          } catch (_) {
+            alert('Terjadi kesalahan jaringan.');
+          } finally {
+            this.isSubmitting = false;
+            this.showConfirmModal = false;
+          }
+        }
+    }"
+>
+  <div class="max-w-screen-xl mx-auto px-4">
+    <div class="bg-white rounded-lg shadow p-6 min-h-[550px]">
+      <div class="mb-4">
+        <a href="{{ $backUrl }}"
+           class="inline-flex items-center text-sm font-medium text-gray-700 bg-white border border-gray-300 px-4 py-2 rounded hover:bg-gray-100 transition">
+          <i class="fas fa-arrow-left mr-2"></i>
+          Kembali
+        </a>
+      </div>
 
-                    @if ($produk->gambar->count() > 1)
-                    <div class="mt-4">
-                        <div class="w-full">
-                            <div id="thumbnailContainer"
-                                class="flex {{ $produk->gambar->count() < 6 ? 'justify-center' : 'justify-start' }} 
-                                    gap-2 overflow-x-auto scroll-smooth hide-scrollbar">
-                                @foreach ($produk->gambar as $index => $gambar)
-                                <img id="thumb-{{ $index }}"
-                                    src="{{ asset('storage/' . $gambar->gambar) }}"
-                                    onclick="setImage({{ $index }})"
-                                    class="w-20 h-20 object-cover border cursor-pointer hover:border-black shrink-0 transition" />
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-
-                <div class="flex flex-col justify-between h-fit p-6 border rounded-md shadow-md bg-white">
-                    <div>
-                        <h1 class="text-xl font-bold mb-4">{{ $produk->nama }}</h1>
-                        <p class="text-lg font-semibold text-black mb-4">
-                            Rp {{ number_format($produk->harga, 0, ',', '.') }} / m<sup>2</sup>
-                        </p>
-                        <div class="mb-6">
-                            <h2 class="text-lg font-semibold mb-2">Deskripsi Produk</h2>
-                            <p class="text-sm text-gray-700 leading-relaxed">
-                                {{ $produk->deskripsi }}
-                            </p>
-                        </div>
-
-                        <div class="mt-6">
-                            @auth
-                            <form action="{{ route('keranjang.tambah') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="produk_id" value="{{ $produk->id }}">
-                                <button type="submit"
-                                    class="inline-flex items-center justify-center gap-2 w-full py-3 px-6 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 8h14l-1 10H6L5 8zM9 8V6a3 3 0 016 0v2" />
-                                    </svg>
-                                    Masukkan ke Keranjang
-                                </button>
-                            </form>
-                            @else
-                            <button @click="showLoginPrompt = true"
-                                class="inline-flex items-center justify-center gap-2 w-full py-3 px-6 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 8h14l-1 10H6L5 8zM9 8V6a3 3 0 016 0v2" />
-                                </svg>
-                                Masukkan ke Keranjang
-                            </button>
-                            @endauth
-                        </div>
-                    </div>
-                </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div>
+          <div class="relative mb-4 border rounded-md overflow-hidden h-[400px]">
+            @php
+              $utama = $produk->gambar->first();
+              $path  = $utama ? 'storage/' . $utama->gambar : 'assets/default.jpg';
+            @endphp
+            <img id="mainImage" src="{{ asset($path) }}"
+                 @click="imageModalUrl = $el.src; showImageModal = true"
+                 class="w-full h-full object-cover cursor-pointer transition" />
+          </div>
+          @if($produk->gambar->count() > 1)
+            <div class="mt-4">
+              <div id="thumbnailContainer"
+                   class="flex {{ $produk->gambar->count() < 6 ? 'justify-center' : 'justify-start' }} gap-2 overflow-x-auto hide-scrollbar">
+                @foreach($produk->gambar as $i => $g)
+                  <img id="thumb-{{ $i }}"
+                       src="{{ asset('storage/' . $g->gambar) }}"
+                       onclick="setImage({{ $i }})"
+                       class="w-20 h-20 object-cover border cursor-pointer hover:border-black shrink-0 transition" />
+                @endforeach
+              </div>
             </div>
+          @endif
         </div>
-    </div>
 
-    <div x-show="showLoginPrompt" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
-            <h2 class="text-lg font-bold mb-4">Anda belum login</h2>
-            <p class="text-sm text-gray-600 mb-6">
-                Silakan login terlebih dahulu untuk memasukkan produk ke keranjang.
-            </p>
-            <div class="flex justify-center gap-4">
-                <a href="{{ route('login', ['next' => request()->fullUrl()]) }}"
-                    class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Login</a>
-                <button @click="showLoginPrompt = false"
-                    class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
-            </div>
-        </div>
-    </div>
+        <div class="flex flex-col justify-between h-fit p-6 border rounded-md shadow-md bg-white">
+          <div class="space-y-2 mb-2">
+            <h1 class="text-xl font-bold">{{ $produk->nama }}</h1>
+            <p class="text-sm text-gray-700 leading-relaxed">{{ $produk->deskripsi }}</p>
+          </div>
 
-    <div x-show="showSuccessModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
-            <p class="text-sm text-gray-600 mb-6">{{ session('success') }}</p>
-            <div class="flex justify-center gap-4">
-                <a href="{{ route('keranjang.index') }}"
-                    class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Lihat Keranjang</a>
-                <button @click="showSuccessModal = false"
-                    class="px-4 py-2 border rounded hover:bg-gray-100">Lanjut Belanja</button>
-            </div>
+          <div class="mt-2 flex w-full gap-2 mb-4">
+            @auth
+              <form action="{{ route('keranjang.tambah') }}" method="POST" class="w-1/2">
+                @csrf
+                <input type="hidden" name="produk_id" value="{{ $produk->id }}">
+                <button type="submit"
+                        class="w-full py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                  Masukkan ke Keranjang
+                </button>
+              </form>
+
+              <button type="button" @click="showConfirmModal = true"
+                      class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                Pesan Sekarang
+              </button>
+            @else
+              <button type="button" @click="showLoginPrompt = true"
+                      class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                Masukkan ke Keranjang
+              </button>
+              <button type="button" @click="showLoginPrompt = true"
+                      class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                Pesan Sekarang
+              </button>
+            @endauth
+          </div>
+
+          <a href="https://wa.me/{{ $waAdmin }}?text={{ urlencode('Halo, saya ingin konsultasi mengenai produk ' . $produk->nama) }}"
+             target="_blank"
+             class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 font-semibold text-black bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition">
+            <i class="fab fa-whatsapp"></i>
+            Konsultasi
+          </a>
         </div>
+      </div>
     </div>
+  </div>
+
+  <div x-show="showImageModal" @click.self="showImageModal = false" x-cloak
+       class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="relative w-full max-w-3xl max-h-[90vh]">
+      <button @click="showImageModal = false"
+              class="absolute top-2 right-2 text-white bg-black/60 rounded-full p-1 hover:bg-black/80 transition">
+        <i class="fas fa-times"></i>
+      </button>
+      <img :src="imageModalUrl"
+           class="w-full h-auto max-h-[90vh] object-contain rounded-md shadow-lg" />
+    </div>
+  </div>
+
+  <div x-show="showLoginPrompt" x-cloak
+       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
+      <h2 class="text-lg font-bold mb-4">Anda belum login</h2>
+      <p class="text-sm text-gray-600 mb-6">Silakan login terlebih dahulu untuk melanjutkan.</p>
+      <div class="flex justify-center gap-4">
+        <a href="{{ route('login', ['next' => request()->fullUrl()]) }}"
+           class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Login</a>
+        <button @click="showLoginPrompt = false"
+                class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div x-show="showSuccessModal" x-cloak
+       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
+      <p class="text-sm text-gray-600 mb-6">{{ session('success') }}</p>
+      <div class="flex justify-center gap-4">
+        <a href="{{ route('keranjang.index') }}"
+           class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Lihat Keranjang</a>
+        <button @click="showSuccessModal = false"
+                class="px-4 py-2 border rounded hover:bg-gray-100">Lanjut Belanja</button>
+      </div>
+    </div>
+  </div>
+
+  <div x-show="showConfirmModal" x-cloak
+       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 shadow-lg max-w-md w-full text-center">
+      <h2 class="text-xl font-semibold mb-2">Konfirmasi Pesanan</h2>
+      <p class="text-gray-700 mb-6">Apakah Anda yakin ingin memesan produk ini sekarang?</p>
+      <div class="flex justify-center gap-3">
+        <button @click="showConfirmModal = false"
+                class="px-5 py-2 border rounded hover:bg-gray-100">Batal</button>
+        <button @click="pesanSekarang()"
+                :disabled="isSubmitting"
+                class="px-5 py-2 bg-black text-white rounded hover:bg-gray-800 disabled:opacity-60">
+          <span x-show="!isSubmitting">Ya, Pesan</span>
+          <span x-show="isSubmitting">Memproses...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div x-show="showWaitingModal" x-cloak
+       class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 shadow-lg max-w-md w-full text-center">
+      <h2 class="text-xl font-semibold mb-3">Pesanan Diterima</h2>
+      <p class="text-gray-700 mb-4">
+        Terima kasih, pesanan Anda telah kami terima. Silakan tunggu 1×24 jam, pihak bengkel akan menghubungi Anda melalui WhatsApp.
+      </p>
+      <a href="{{ route('pesanan.index') }}"
+         class="px-6 py-2 bg-black text-white rounded hover:bg-gray-800">Lihat Pesanan</a>
+    </div>
+  </div>
 </section>
 
 <style>
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <script>
-    const thumbnails = Array.from(document.querySelectorAll('#thumbnailContainer img'));
-    let currentIndex = 0;
-
-    function setImage(index) {
-        currentIndex = index;
-        const mainImage = document.getElementById('mainImage');
-        const activeThumb = document.getElementById('thumb-' + currentIndex);
-        const thumbnailContainer = document.getElementById('thumbnailContainer');
-        mainImage.src = activeThumb.src;
-        thumbnails.forEach((thumb, i) => {
-            document.getElementById('thumb-' + i).classList.remove('ring', 'ring-black', 'border-black');
-        });
-        activeThumb.classList.add('ring', 'ring-black', 'border-black');
-        const scrollTo = activeThumb.offsetLeft - (thumbnailContainer.clientWidth / 2) + (activeThumb.clientWidth / 2);
-        thumbnailContainer.scrollTo({ left: scrollTo, behavior: 'smooth' });
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        if (thumbnails.length) {
-            setImage(0);
-        }
-    });
+const thumbnails = Array.from(document.querySelectorAll('#thumbnailContainer img'));
+let currentIndex = 0;
+function setImage(index) {
+  currentIndex = index;
+  const mainImage = document.getElementById('mainImage');
+  const thumb     = document.getElementById('thumb-' + index);
+  mainImage.src = thumb.src;
+  thumbnails.forEach((_,i) => {
+    const el = document.getElementById('thumb-'+i);
+    if (el) el.classList.remove('ring','ring-black','border-black');
+  });
+  if (thumb) thumb.classList.add('ring','ring-black','border-black');
+  const container = document.getElementById('thumbnailContainer');
+  if (container && thumb) {
+    const pos = thumb.offsetLeft - (container.clientWidth/2) + (thumb.clientWidth/2);
+    container.scrollTo({ left: pos, behavior: 'smooth' });
+  }
+}
+window.addEventListener('DOMContentLoaded', () => {
+  if (thumbnails.length) setImage(0);
+});
 </script>
 @endsection

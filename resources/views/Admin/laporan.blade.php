@@ -3,147 +3,144 @@
 @section('title', 'Laporan Pendapatan')
 
 @section('content')
-<section class="flex flex-col items-center px-6 py-6">
-    <div class="w-full max-w-screen-xl bg-white px-6 sm:px-8 py-6 rounded-lg shadow">
-        <h1 class="text-2xl font-bold mb-6">LAPORAN PENDAPATAN</h1>
+<section class="flex flex-col items-center px-4 sm:px-6 py-6"
+    x-data="{
+        mfrom: '{{ request('mfrom', $month) }}',
+        mto:   '{{ request('mto', $month) }}',
+        validateRange(e){
+            if(this.mfrom && this.mto && this.mto < this.mfrom){
+                e.preventDefault();
+                alert('Sampai Bulan tidak boleh lebih kecil dari Dari Bulan.');
+            }
+        }
+    }">
+    <div class="w-full max-w-screen-xl bg-white px-4 sm:px-8 py-6 rounded-2xl shadow-md">
 
-        <form method="GET" action="{{ route('admin.laporan.index') }}" class="flex flex-col sm:flex-row sm:items-end gap-4 mb-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Dari Tanggal</label>
-                <input type="date" name="from" value="{{ request('from') }}"
-                    class="border px-3 py-2 rounded w-full focus:outline-none focus:ring focus:border-black">
+        @if (session('success'))
+        <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+            {{ session('success') }}
+        </div>
+        @endif
+        @if (session('error'))
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+            {{ session('error') }}
+        </div>
+        @endif
+
+        <div class="rounded-xl border border-gray-800 bg-black text-white p-5 mb-6">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="min-w-0">
+                    <h1 class="text-2xl font-bold tracking-wide">LAPORAN PENDAPATAN</h1>
+                    <p class="text-sm text-gray-200 mt-1">
+                        Periode:
+                        <strong>{{ \Carbon\Carbon::parse($start)->translatedFormat('d F Y') }}</strong>
+                        s/d
+                        <strong>{{ \Carbon\Carbon::parse($end)->translatedFormat('d F Y') }}</strong>
+                    </p>
+                </div>
+                <div class="w-full lg:w-auto">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <a href="{{ route('admin.laporan.index', ['month' => $prevMonth]) }}"
+                           class="w-full text-center rounded-lg border border-white/20 bg-white/10 px-3 py-2 hover:bg-white/20 transition">
+                            &laquo; Bulan Sebelumnya
+                        </a>
+                        <a href="{{ route('admin.laporan.index', ['month' => now('Asia/Jakarta')->format('Y-m')]) }}"
+                           class="w-full text-center rounded-lg border border-white/20 bg-white/10 px-3 py-2 hover:bg-white/20 transition">
+                            Bulan Ini
+                        </a>
+                        <a href="{{ route('admin.laporan.index', ['month' => $nextMonth]) }}"
+                           class="w-full text-center rounded-lg border border-white/20 bg-white/10 px-3 py-2 hover:bg-white/20 transition">
+                            Bulan Berikutnya &raquo;
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Sampai Tanggal</label>
-                <input type="date" name="to" value="{{ request('to') }}"
-                    class="border px-3 py-2 rounded w-full focus:outline-none focus:ring focus:border-black">
+        </div>
+
+        <form method="GET" action="{{ route('admin.laporan.index') }}"
+              class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 sm:gap-4 mb-6 items-end">
+            <div class="w-full">
+                <label class="block text-sm font-medium mb-1">Pilih Bulan</label>
+                <input type="month" name="month" value="{{ $month }}"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:border-black">
             </div>
-            <div class="self-start sm:self-end">
-                <button type="submit" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 mt-1">Tampilkan</button>
+            <div class="w-full sm:w-auto">
+                <button type="submit"
+                        class="w-full sm:w-auto bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">
+                    Tampilkan
+                </button>
             </div>
         </form>
 
-        @if (request('from') && request('to') && $pemesanan->count())
-            <p class="text-sm text-gray-600 mb-4">
-                Menampilkan laporan dari
-                <strong>{{ \Carbon\Carbon::parse(request('from'))->translatedFormat('d F Y') }}</strong>
-                sampai
-                <strong>{{ \Carbon\Carbon::parse(request('to'))->translatedFormat('d F Y') }}</strong>
+        <div class="rounded-xl border border-gray-200 p-4 sm:p-5 mb-8">
+            <form method="GET" action="{{ route('admin.laporan.export') }}"
+                  class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 items-end"
+                  @submit="validateRange($event)">
+                <div class="w-full">
+                    <label class="block text-sm font-medium mb-1">Dari Bulan</label>
+                    <input type="month" name="mfrom" x-model="mfrom"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:border-black">
+                </div>
+                <div class="w-full">
+                    <label class="block text-sm font-medium mb-1">Sampai Bulan</label>
+                    <input type="month" name="mto" x-model="mto"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring focus:border-black">
+                </div>
+                <div class="w-full md:w-auto">
+                    <button type="submit"
+                            class="w-full md:w-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                        Export PDF
+                    </button>
+                </div>
+            </form>
+            <p class="text-xs text-gray-500 mt-2">
+                Kosongkan salah satu, sistem otomatis mengekspor bulan yang diisi saja.
             </p>
-
-            <div class="mb-4 flex flex-wrap gap-3">
-                <a href="{{ route('admin.laporan.export', ['from' => request('from'), 'to' => request('to'), 'format' => 'pdf']) }}"
-                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Export PDF</a>
-            </div>
-        @elseif (request('from') && request('to'))
-            <p class="text-sm text-gray-600 mb-4">
-                Tidak ada data <strong>selesai</strong> dalam rentang waktu
-                <strong>{{ \Carbon\Carbon::parse(request('from'))->translatedFormat('d F Y') }}</strong>
-                sampai
-                <strong>{{ \Carbon\Carbon::parse(request('to'))->translatedFormat('d F Y') }}</strong>.
-            </p>
-        @endif
-
-        <div class="overflow-x-auto rounded">
-            <table class="min-w-full border border-gray-300 text-sm text-left">
-                <thead class="bg-black text-white uppercase text-xs tracking-wider">
-                    <tr>
-                        <th class="px-5 py-3 border-r border-gray-400">#</th>
-                        <th class="px-5 py-3 border-r border-gray-400">Tanggal</th>
-                        <th class="px-5 py-3 border-r border-gray-400">Nama Pelanggan</th>
-                        <th class="px-5 py-3 border-r border-gray-400">Produk</th>
-                        <th class="px-5 py-3 border-r border-gray-400">Total Harga</th>
-                        <th class="px-5 py-3">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="text-gray-700">
-                    @forelse ($pemesanan as $i => $pesanan)
-                        <tr class="hover:bg-gray-100 border-b border-gray-300">
-                            <td class="px-5 py-3 border-r border-gray-200">
-                                {{ $pemesanan->firstItem() + $loop->index }}
-                            </td>
-                            <td class="px-5 py-3 border-r border-gray-200">
-                                {{ \Carbon\Carbon::parse($pesanan->created_at)->format('d/m/Y') }}
-                            </td>
-                            <td class="px-5 py-3 border-r border-gray-200">
-                                {{ $pesanan->pelanggan->name }}
-                            </td>
-                            <td class="px-5 py-3 border-r border-gray-200">
-                                @foreach ($pesanan->details as $detail)
-                                    <div>{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
-                                @endforeach
-                            </td>
-                            <td class="px-5 py-3 border-r border-gray-200">
-                                Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}
-                            </td>
-                            <td class="px-5 py-3">
-                                <span class="inline-block px-2 py-1 rounded text-xs font-medium
-                                    @switch($pesanan->status)
-                                        @case('selesai') bg-green-100 text-green-800 @break
-                                        @case('dikerjakan') bg-purple-100 text-purple-800 @break
-                                        @case('diproses') bg-blue-100 text-blue-800 @break
-                                        @default bg-yellow-100 text-yellow-800
-                                    @endswitch
-                                ">
-                                    {{ ucfirst($pesanan->status) }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-gray-500 py-10 text-base font-semibold">
-                                Tidak ada data pemesanan yang tersedia.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
         </div>
-    </div>
 
-    <div class="flex justify-center mt-8">
-        <ul class="inline-flex items-center text-sm">
-            <div class="inline-flex space-x-1 mr-2">
-                @if ($pemesanan->onFirstPage())
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
-                @else
-                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
-                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
-                @endif
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="min-w-0 rounded-xl border border-gray-200 bg-white p-5 hover:shadow-sm transition">
+                <div class="text-xs text-gray-500 mb-1">Transaksi Selesai</div>
+                <div class="text-2xl sm:text-3xl font-bold break-words [overflow-wrap:anywhere] leading-tight">
+                    {{ number_format($ringkasan['count'] ?? 0) }}
+                </div>
             </div>
-
-            <div class="inline-flex space-x-1 mx-2">
-                @php
-                    $current = $pemesanan->currentPage();
-                    $last = $pemesanan->lastPage();
-                    $start = max(1, $current - 2);
-                    $end = min($last, $start + 4);
-                    if ($end - $start < 4) {
-                        $start = max(1, $end - 4);
-                    }
-                @endphp
-
-                @for ($i = $start; $i <= $end; $i++)
-                    <li>
-                        <a href="{{ $pemesanan->appends(request()->except('page'))->url($i) }}"
-                            class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
-                            {{ $i }}
-                        </a>
-                    </li>
-                @endfor
+            <div class="min-w-0 rounded-xl border border-gray-200 bg-white p-5 hover:shadow-sm transition">
+                <div class="text-xs text-gray-500 mb-1">Total Harga</div>
+                <div class="text-2xl sm:text-3xl font-bold break-words [overflow-wrap:anywhere] leading-tight">
+                    Rp {{ number_format($ringkasan['gross'] ?? 0, 0, ',', '.') }}
+                </div>
             </div>
-
-            <div class="inline-flex space-x-1 ml-2">
-                @if ($pemesanan->hasMorePages())
-                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
-                    <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
-                @else
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
-                    <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
-                @endif
+            <div class="min-w-0 rounded-xl border border-gray-200 bg-white p-5 hover:shadow-sm transition">
+                <div class="text-xs text-gray-500 mb-1">Total Bahan Besi</div>
+                <div class="text-2xl sm:text-3xl font-bold break-words [overflow-wrap:anywhere] leading-tight">
+                    Rp {{ number_format($ringkasan['total_bahan_besi'] ?? 0, 0, ',', '.') }}
+                </div>
             </div>
-        </ul>
+            <div class="min-w-0 rounded-xl border border-gray-200 bg-white p-5 hover:shadow-sm transition">
+                <div class="text-xs text-gray-500 mb-1">Total Bahan Lainnya</div>
+                <div class="text-2xl sm:text-3xl font-bold break-words [overflow-wrap:anywhere] leading-tight">
+                    Rp {{ number_format($ringkasan['total_bahan_lainnya'] ?? 0, 0, ',', '.') }}
+                </div>
+            </div>
+            <div class="min-w-0 rounded-xl border border-gray-200 bg-white p-5 hover:shadow-sm transition">
+                <div class="text-xs text-gray-500 mb-1">Total Jasa</div>
+                <div class="text-2xl sm:text-3xl font-bold break-words [overflow-wrap:anywhere] leading-tight">
+                    Rp {{ number_format($ringkasan['total_jasa'] ?? 0, 0, ',', '.') }}
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6">
+            <div class="text-xs text-gray-500">Pendapatan Bersih Bulan Ini</div>
+            <div class="text-3xl sm:text-4xl font-extrabold mt-1 break-words [overflow-wrap:anywhere] leading-tight">
+                Rp {{ number_format($ringkasan['net'] ?? 0, 0, ',', '.') }}
+            </div>
+            @if(($ringkasan['count'] ?? 0) === 0)
+                <p class="mt-3 text-sm text-gray-500">Tidak ada transaksi selesai pada bulan ini.</p>
+            @endif
+        </div>
+
     </div>
 </section>
 @endsection

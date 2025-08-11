@@ -8,18 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('produk_gambar', function (Blueprint $table) {
+        Schema::create('kategori', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('produk_id')
-                ->constrained('produk')
-                ->cascadeOnDelete();
-            $table->string('gambar');
+            $table->string('nama', 255);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('produk_gambar');
+        Schema::dropIfExists('kategori');
     }
 };

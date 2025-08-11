@@ -9,9 +9,6 @@
             <p class="text-sm mt-2">
                 <span class="font-semibold">Lokasi:</span> Jl. M. Yamin Gg. Sumber Harapan No.1, Pontianak Barat.
             </p>
-            <p class="text-sm mt-1">
-                <span class="font-semibold">Kontak:</span> +(62) 895 1959 9386
-            </p>
         </div>
 
         <div class="flex flex-col items-center">

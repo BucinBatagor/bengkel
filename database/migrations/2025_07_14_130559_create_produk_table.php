@@ -10,10 +10,14 @@ return new class extends Migration
     {
         Schema::create('produk', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('kategori');
+            $table->foreignId('kategori_id')
+                ->nullable()
+                ->constrained('kategori')
+                ->cascadeOnUpdate()
+                ->nullOnDelete();
+            $table->string('nama', 255);
+            $table->string('kategori', 255);
             $table->text('deskripsi')->nullable();
-            $table->decimal('harga', 10, 2);
             $table->timestamps();
         });
     }

@@ -26,12 +26,14 @@
   <!-- mobile hamburger -->
   <div class="md:hidden fixed top-0 left-0 w-full z-[100] bg-black text-white flex items-center p-4 justify-between">
     <button @click="sidebarOpen = true" x-show="!sidebarOpen" x-cloak class="focus:outline-none">
+      <!-- icon buka -->
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
            viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
     <button @click="sidebarOpen = false" x-show="sidebarOpen" x-cloak class="focus:outline-none">
+      <!-- icon tutup -->
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
            viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
         <path d="M6 18L18 6M6 6l12 12" />
@@ -70,18 +72,31 @@
             <i class="fa-solid fa-users"></i>
             Akun Pelanggan
           </a>
+
+          {{-- Kelola Kategori --}}
+          <a href="{{ route('admin.kategori.index') }}"
+             class="block w-full px-6 py-3 flex items-center gap-3 transition
+                    {{ request()->routeIs('admin.kategori.*') ? 'bg-gray-600 text-white' : 'hover:bg-gray-800 text-white' }}">
+            <i class="fa-solid fa-tags"></i>
+            Kelola Kategori
+          </a>
+          {{-- Katalog Produk --}}
           <a href="{{ route('admin.katalog.index') }}"
              class="block w-full px-6 py-3 flex items-center gap-3 transition
                     {{ request()->routeIs('admin.katalog.*') ? 'bg-gray-600 text-white' : 'hover:bg-gray-800 text-white' }}">
             <i class="fa-solid fa-box"></i>
             Katalog Produk
           </a>
+
+          {{-- Pesanan Masuk --}}
           <a href="{{ route('admin.pemesanan.index') }}"
              class="block w-full px-6 py-3 flex items-center gap-3 transition
                     {{ request()->routeIs('admin.pemesanan.*') ? 'bg-gray-600 text-white' : 'hover:bg-gray-800 text-white' }}">
             <i class="fa-solid fa-clipboard-list"></i>
             Pesanan Masuk
           </a>
+
+          {{-- Laporan Pendapatan --}}
           <a href="{{ route('admin.laporan.index') }}"
              class="block w-full px-6 py-3 flex items-center gap-3 transition
                     {{ request()->routeIs('admin.laporan.*') ? 'bg-gray-600 text-white' : 'hover:bg-gray-800 text-white' }}">
@@ -152,4 +167,5 @@
     }
   </script>
 </body>
+
 </html>

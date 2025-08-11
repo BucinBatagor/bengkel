@@ -1,3 +1,4 @@
+{{-- resources/views/Pelanggan/beranda.blade.php --}}
 @extends('Template.pelanggan')
 
 @section('title', 'Beranda')
@@ -42,16 +43,21 @@
                         <img src="{{ asset($imgPath) }}"
                              alt="{{ $kategori['nama_produk'] }}"
                              class="w-full h-48 sm:h-52 object-cover" />
-                        <div class="p-4 flex flex-col h-full justify-between">
-                            <div>
-                                <h3 class="text-lg font-bold mb-1">{{ $kategori['nama_produk'] }}</h3>
-                                <p class="text-sm text-gray-500 mb-2">{{ $kategori['nama'] }}</p>
-                                <p class="text-sm text-gray-700 mb-4">
-                                    Rp {{ number_format($kategori['harga'], 0, ',', '.') }}/ m<sup>2</sup>
+
+                        <div class="p-4 flex flex-col flex-1 justify-between">
+                            <div class="space-y-1">
+                                <h3 class="text-lg font-semibold text-gray-800 truncate">
+                                    {{ $kategori['nama_produk'] }}
+                                </h3>
+                                <p class="text-sm text-gray-500 truncate">
+                                    {{ $kategori['nama'] }}
                                 </p>
                             </div>
-                            <div class="text-sm text-center text-blue-600 font-semibold hover:underline mt-auto">
-                                Lihat Detail
+
+                            <div class="mt-4 text-center">
+                                <span class="inline-block text-blue-600 font-medium hover:underline">
+                                    Lihat Detail
+                                </span>
                             </div>
                         </div>
                     </a>

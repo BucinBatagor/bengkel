@@ -10,21 +10,27 @@ class KatalogController extends Controller
 {
     public function index(Request $request)
     {
-        $kategoris = Produk::select('kategori')
+        $kategori = Produk::select('kategori')
             ->distinct()
             ->orderBy('kategori')
             ->pluck('kategori');
 
-        $produks = Produk::when($request->kategori && $request->kategori !== 'Semua', function ($query) use ($request) {
-                $query->where('kategori', $request->kategori);
-            })
-            ->when($request->q, function ($query) use ($request) {
-                $query->where('nama', 'like', '%' . $request->q . '%');
-            })
+        $produks = Produk::when(
+                $request->kategori && $request->kategori !== 'Semua',
+                function ($query) use ($request) {
+                    return $query->where('kategori', $request->kategori);
+                }
+            )
+            ->when(
+                $request->q,
+                function ($query) use ($request) {
+                    return $query->where('nama', 'like', '%' . $request->q . '%');
+                }
+            )
             ->latest()
             ->paginate(8)
             ->withQueryString();
 
-        return view('pelanggan.katalog', compact('produks', 'kategoris'));
+        return view('pelanggan.katalog', compact('produks', 'kategori'));
     }
 }

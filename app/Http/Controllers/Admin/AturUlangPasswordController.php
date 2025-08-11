@@ -9,13 +9,11 @@ use Illuminate\Support\Facades\Hash;
 
 class AturUlangPasswordController extends Controller
 {
-    // Tampilkan form lupa password
     public function showFormRequest()
     {
         return view('Admin.lupaPassword');
     }
 
-    // Kirim link reset ke email admin
     public function sendResetLink(Request $request)
     {
         $request->validate([
@@ -34,7 +32,6 @@ class AturUlangPasswordController extends Controller
             : back()->withErrors(['email' => 'Email tidak ditemukan.']);
     }
 
-    // Tampilkan form atur ulang password dari email
     public function showForm(Request $request, $token)
     {
         return view('Admin.aturUlangPassword', [
@@ -43,39 +40,37 @@ class AturUlangPasswordController extends Controller
         ]);
     }
 
-    // Simpan password baru
     public function reset(Request $request)
-{
-    $request->validate([
-        'token' => 'required',
-        'email' => 'required|email',
-        'password' => 'required|min:6|confirmed',
-    ], [
-        'token.required' => 'Token tidak ditemukan.',
-        'email.required' => 'Email wajib diisi.',
-        'email.email' => 'Format email tidak valid.',
-        'password.required' => 'Password wajib diisi.',
-        'password.min' => 'Password minimal 6 karakter.',
-        'password.confirmed' => 'Konfirmasi password tidak cocok.',
-    ]);
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:6|confirmed',
+        ], [
+            'token.required' => 'Token tidak ditemukan.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
 
-    $status = Password::broker('admin')->reset(
-        $request->only('email', 'password', 'password_confirmation', 'token'),
-        function ($admin, $password) {
-            if (Hash::check($password, $admin->password)) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'password' => 'Password baru tidak boleh sama dengan password lama.',
-                ]);
+        $status = Password::broker('admin')->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($admin, $password) {
+                if (Hash::check($password, $admin->password)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'password' => 'Password baru tidak boleh sama dengan password lama.',
+                    ]);
+                }
+
+                $admin->password = Hash::make($password);
+                $admin->save();
             }
+        );
 
-            $admin->password = Hash::make($password);
-            $admin->save();
-        }
-    );
-
-    return $status === Password::PASSWORD_RESET
-        ? redirect()->route('admin.password.reset.success')
-        : back()->withErrors(['email' => __($status)]);
-}
-
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('admin.password.reset.success')
+            : back()->withErrors(['email' => __($status)]);
+    }
 }

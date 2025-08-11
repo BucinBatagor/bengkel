@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\URL;
 
 class AdminVerifyEmail extends VerifyEmail
 {
-    /**
-     * Generate URL verifikasi yang menautkan ke route admin.verification.verify
-     */
     protected function verificationUrl($notifiable)
     {
         $expiration = Carbon::now()->addMinutes(
@@ -20,18 +17,15 @@ class AdminVerifyEmail extends VerifyEmail
         );
 
         return URL::temporarySignedRoute(
-            'admin.verification.verify',  // <-- nama route admin
+            'admin.verification.verify',
             $expiration,
             [
-                'id'   => $notifiable->getKey(),
+                'id' => $notifiable->getKey(),
                 'hash' => sha1($notifiable->getEmailForVerification()),
             ]
         );
     }
 
-    /**
-     * Build the mail message.
-     */
     public function toMail($notifiable)
     {
         $verifyUrl = $this->verificationUrl($notifiable);

@@ -39,7 +39,7 @@ class ResetPasswordController extends Controller
             function ($user, $password) {
                 if (Hash::check($password, $user->password)) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
-                        'password' => 'Password baru tidak boleh sama dengan password lama.'
+                        'password' => 'Password baru tidak boleh sama dengan password lama.',
                     ]);
                 }
 

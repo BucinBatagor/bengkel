@@ -83,7 +83,7 @@ class ProfilController extends Controller
 
         $pelanggan = Auth::user();
 
-        if (!Hash::check($request->current_password, $pelanggan->password)) {
+        if (! Hash::check($request->current_password, $pelanggan->password)) {
             return back()->withErrors([
                 'current_password' => 'Password lama tidak sesuai.',
             ])->withInput();

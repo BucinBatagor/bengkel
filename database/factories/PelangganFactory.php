@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\Pelanggan;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pelanggan>
- */
 class PelangganFactory extends Factory
 {
     protected $model = Pelanggan::class;

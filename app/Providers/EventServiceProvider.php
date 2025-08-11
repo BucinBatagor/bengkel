@@ -9,7 +9,7 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
     ];
 
-    public function boot()
+    public function boot(): void
     {
     }
 }

@@ -3,96 +3,47 @@
 namespace App\Http\Controllers\Pelanggan;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Produk;
-use App\Models\Pemesanan;
-use App\Models\PemesananDetail;
-use Midtrans\Snap;
-use Illuminate\Support\Facades\DB;
+use App\Models\Admin;
 
 class ProdukController extends Controller
 {
     public function show($id)
     {
         $produk = Produk::with('gambar')->findOrFail($id);
-        return view('pelanggan.produk', compact('produk'));
+
+        $adminPhoneRaw = Admin::whereNotNull('phone')->orderBy('id')->value('phone');
+
+        $waAdmin = $this->toWaNumber($adminPhoneRaw) ?? '6289644819899';
+
+        return view('Pelanggan.produk', compact('produk', 'waAdmin'));
     }
 
-    public function produk(Request $request)
+    private function toWaNumber(?string $phone): ?string
     {
-        $user = auth()->user();
-        $produk = Produk::findOrFail($request->produk_id);
-
-        $panjang = (float) $request->panjang;
-        $lebar   = (float) $request->lebar;
-        $tinggi  = (float) $request->tinggi;
-
-        $harga = ($panjang + $lebar + $tinggi) * $produk->harga;
-        $orderId = 'ORDER-' . uniqid();
-
-        DB::beginTransaction();
-        try {
-            $pemesanan = Pemesanan::create([
-                'order_id'         => $orderId,
-                'pelanggan_id'     => $user->id,
-                'status'           => 'pending',
-                'total_harga'      => $harga,
-                'snap_token'       => null,
-                'midtrans_response'=> null,
-            ]);
-
-            PemesananDetail::create([
-                'pemesanan_id' => $pemesanan->id,
-                'pelanggan_id' => $user->id,
-                'produk_id'    => $produk->id,
-                'nama_produk'  => $produk->nama,
-                'panjang'      => $panjang,
-                'lebar'        => $lebar,
-                'tinggi'       => $tinggi,
-                'harga'        => $harga,
-            ]);
-
-            $params = [
-                'transaction_details' => [
-                    'order_id'     => $orderId,
-                    'gross_amount' => $harga,
-                ],
-                'item_details' => [
-                    [
-                        'id'       => $produk->id,
-                        'price'    => $harga,
-                        'quantity' => 1,
-                        'name'     => $produk->nama . " (Ukuran {$panjang}x{$lebar}x{$tinggi})",
-                    ]
-                ],
-                'customer_details' => [
-                    'first_name' => $user->name,
-                    'email'      => $user->email,
-                    'phone'      => $user->phone,
-                    'billing_address' => [
-                        'first_name' => $user->name,
-                        'email'      => $user->email,
-                        'phone'      => $user->phone,
-                        'address'    => $user->address,
-                    ],
-                    'shipping_address' => [
-                        'first_name' => $user->name,
-                        'email'      => $user->email,
-                        'phone'      => $user->phone,
-                        'address'    => $user->address,
-                    ]
-                ]
-            ];
-
-            $snapToken = Snap::getSnapToken($params);
-            $pemesanan->update(['snap_token' => $snapToken]);
-
-            DB::commit();
-            return response()->json(['token' => $snapToken]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => $e->getMessage()], 500);
+        if ($phone === null) {
+            return null;
         }
+        $phone = trim($phone);
+        if ($phone === '') {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phone);
+        if ($digits === '') {
+            return null;
+        }
+
+        if (strpos($digits, '62') === 0) {
+            return $digits;
+        }
+        if ($digits[0] === '0') {
+            return '62' . substr($digits, 1);
+        }
+        if ($digits[0] === '8') {
+            return '62' . $digits;
+        }
+
+        return $digits;
     }
 }

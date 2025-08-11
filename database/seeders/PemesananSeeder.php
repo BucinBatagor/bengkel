@@ -29,6 +29,7 @@ class PemesananSeeder extends Seeder
             $panjang = rand(100, 200);
             $lebar = rand(50, 150);
             $tinggi = rand(60, 180);
+
             $produk = Produk::find($p['produk_id']);
             $total = $produk->harga * ($panjang + $lebar + $tinggi) / 100;
 
