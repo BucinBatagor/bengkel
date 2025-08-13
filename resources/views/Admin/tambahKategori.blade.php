@@ -34,8 +34,7 @@
       </div>
 
       <div class="flex justify-end">
-        <button type="submit"
-                class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+        <button type="submit" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
           Simpan
         </button>
       </div>

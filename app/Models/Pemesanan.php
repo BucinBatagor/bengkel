@@ -15,6 +15,7 @@ class Pemesanan extends Model
         'order_id',
         'pelanggan_id',
         'status',
+        'keuntungan',
         'total_harga',
         'snap_token',
         'midtrans_response',

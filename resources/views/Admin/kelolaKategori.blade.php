@@ -8,7 +8,7 @@
     <h1 class="text-2xl font-bold mb-6">KELOLA KATEGORI</h1>
 
     <div class="block md:hidden mb-6 space-y-4">
-      <form method="GET" action="{{ route('admin.kategori.index') }}" class="flex w-full">
+      <form method="GET" action="{{ route('admin.kategori.index') }}" class="flex w-full" novalidate>
         <div class="relative flex w-full">
           <input
             type="text"
@@ -20,7 +20,7 @@
           @if(request('search'))
             <button
               type="button"
-              onclick="window.location.href='{{ route('admin.kategori.index', array_merge(request()->except(['search','page'])) ) }}'"
+              onclick="window.location.href='{{ route('admin.kategori.index', array_merge(request()->except(['search','page']))) }}'"
               class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black text-lg"
             >&times;</button>
           @endif
@@ -43,7 +43,7 @@
         class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 shadow"
       >+ Tambah Kategori</a>
 
-      <form method="GET" action="{{ route('admin.kategori.index') }}" class="flex">
+      <form method="GET" action="{{ route('admin.kategori.index') }}" class="flex" novalidate>
         <div class="relative flex w-[280px]">
           <input
             type="text"
@@ -55,7 +55,7 @@
           @if(request('search'))
             <button
               type="button"
-              onclick="window.location.href='{{ route('admin.kategori.index', array_merge(request()->except(['search','page'])) ) }}'"
+              onclick="window.location.href='{{ route('admin.kategori.index', array_merge(request()->except(['search','page']))) }}'"
               class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black text-lg"
             >&times;</button>
           @endif
@@ -83,8 +83,7 @@
               <td class="px-5 py-3 border-r font-medium">{{ $item->nama }}</td>
               <td class="px-5 py-3">
                 <div class="flex items-center gap-3">
-                  <a href="{{ route('admin.kategori.edit', $item->id) }}"
-                     class="text-blue-600 hover:text-blue-800 font-semibold">Edit</a>
+                  <a href="{{ route('admin.kategori.edit', $item->id) }}" class="text-blue-600 hover:text-blue-800 font-semibold">Edit</a>
                   <button
                     @click="show = true; deleteUrl = '{{ route('admin.kategori.destroy', $item->id) }}'"
                     class="text-red-600 hover:text-red-800 font-semibold">Hapus</button>
@@ -93,9 +92,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="3" class="text-center text-gray-500 py-10 font-semibold">
-                Belum ada kategori.
-              </td>
+              <td colspan="3" class="text-center text-gray-500 py-10 font-semibold">Belum ada kategori.</td>
             </tr>
           @endforelse
         </tbody>
@@ -132,9 +129,7 @@
           $last = $kategori->lastPage();
           $start = max(1, $current - 2);
           $end = min($last, $start + 4);
-          if ($end - $start < 4) {
-            $start = max(1, $end - 4);
-          }
+          if ($end - $start < 4) { $start = max(1, $end - 4); }
         @endphp
 
         @for ($i = $start; $i <= $end; $i++)

@@ -10,23 +10,36 @@
       <div class="text-xs text-gray-500" x-text="statusText"></div>
     </div>
 
-    <form method="GET" action="{{ route('admin.pemesanan.index') }}"
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 w-full">
+    @if(session('success'))
+      <div class="mb-4 p-3 rounded bg-green-50 text-green-800 border border-green-200">
+        {{ session('success') }}
+      </div>
+    @endif
+    @if(session('error'))
+      <div class="mb-4 p-3 rounded bg-red-50 text-red-800 border border-red-200">
+        {{ session('error') }}
+      </div>
+    @endif
+
+    <form method="GET" action="{{ route('admin.pemesanan.index') }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 w-full">
       <div class="flex items-center gap-2 w-full sm:w-auto">
         <div class="relative w-full sm:max-w-md">
-          <input type="text" name="search" value="{{ request('search') }}"
-                 placeholder="Cari nama pelanggan..."
-                 class="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-black pr-8">
+          <input
+            type="text"
+            name="search"
+            value="{{ request('search') }}"
+            placeholder="Cari nama pelanggan..."
+            class="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-black pr-8"
+          >
           @if(request('search'))
-            <button type="button"
-                    onclick="window.location.href='{{ route('admin.pemesanan.index', array_merge(request()->except(['search','page'])) ) }}'"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black text-lg">
-              &times;
-            </button>
+            <button
+              type="button"
+              onclick="window.location.href='{{ route('admin.pemesanan.index', array_merge(request()->except(['search','page'])) ) }}'"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black text-lg"
+            >&times;</button>
           @endif
         </div>
-        <button type="submit"
-                class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 whitespace-nowrap">
+        <button type="submit" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 whitespace-nowrap">
           Cari
         </button>
       </div>
@@ -45,8 +58,11 @@
             'gagal'                => 'Gagal',
           ];
         @endphp
-        <select name="status" onchange="this.form.submit()"
-                class="appearance-none w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-black">
+        <select
+          name="status"
+          onchange="this.form.submit()"
+          class="appearance-none w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-black"
+        >
           <option value="">Semua Status</option>
           @foreach($filterOptions as $val => $label)
             <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>
@@ -56,13 +72,29 @@
         </select>
         <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-600">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.085l3.71-3.855a.75.75 0 111.08 1.04l-4.25 4.418a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-                  clip-rule="evenodd" />
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.085l3.71-3.855a.75.75 0 111.08 1.04l-4.25 4.418a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
           </svg>
         </div>
       </div>
     </form>
+
+    @php
+      $labels = [
+        'butuh_cek_ukuran'     => 'Butuh Cek Ukuran',
+        'belum_bayar'          => 'Belum Bayar',
+        'di_proses'            => 'Di Proses',
+        'dikerjakan'           => 'Dikerjakan',
+        'selesai'              => 'Selesai',
+        'pengembalian_dana'    => 'Pengembalian Dana',
+        'pengembalian_selesai' => 'Pengembalian Selesai',
+        'batal'                => 'Batal',
+        'gagal'                => 'Gagal',
+      ];
+    @endphp
 
     <div id="ordersTableWrap" class="overflow-x-auto rounded">
       <table class="min-w-full border border-gray-300 text-sm text-left">
@@ -79,58 +111,54 @@
         </thead>
         <tbody class="text-gray-700">
           @forelse ($pemesanan as $pesanan)
-           @php
-  $labels = [
-    'butuh_cek_ukuran'     => 'Butuh Cek Ukuran',
-    'belum_bayar'          => 'Belum Bayar',
-    'di_proses'            => 'Di Proses',
-    'dikerjakan'           => 'Dikerjakan',
-    'selesai'              => 'Selesai',
-    'pengembalian_dana'    => 'Pengembalian Dana',
-    'pengembalian_selesai' => 'Pengembalian Selesai',
-    'batal'                => 'Batal',
-    'gagal'                => 'Gagal',
-  ];
-  $statusLabel = $labels[$pesanan->status] ?? ucfirst(str_replace('_',' ',$pesanan->status));
-  $badge = match($pesanan->status) {
-    'butuh_cek_ukuran' => 'bg-yellow-50 text-yellow-800',
-    'belum_bayar' => 'bg-yellow-100 text-yellow-800',
-    'di_proses' => 'bg-blue-100 text-blue-800',
-    'dikerjakan' => 'bg-indigo-100 text-indigo-800',
-    'selesai' => 'bg-green-100 text-green-800',
-    'pengembalian_dana' => 'bg-orange-100 text-orange-800',
-    'pengembalian_selesai' => 'bg-green-50 text-green-800',
-    'batal','gagal' => 'bg-red-100 text-red-800',
-    default => 'bg-gray-100 text-gray-800',
-  };
+            @php
+              $statusLabel = $labels[$pesanan->status] ?? ucfirst(str_replace('_',' ',$pesanan->status));
+              $badge = match($pesanan->status) {
+                'butuh_cek_ukuran' => 'bg-yellow-50 text-yellow-800',
+                'belum_bayar' => 'bg-yellow-100 text-yellow-800',
+                'di_proses' => 'bg-blue-100 text-blue-800',
+                'dikerjakan' => 'bg-indigo-100 text-indigo-800',
+                'selesai' => 'bg-green-100 text-green-800',
+                'pengembalian_dana' => 'bg-orange-100 text-orange-800',
+                'pengembalian_selesai' => 'bg-green-50 text-green-800',
+                'batal','gagal' => 'bg-red-100 text-red-800',
+                default => 'bg-gray-100 text-gray-800',
+              };
 
-  $blockedStates = ['butuh_cek_ukuran','belum_bayar','batal','gagal'];
-  $isBlocked = in_array($pesanan->status, $blockedStates, true);
+              $blockedStates = ['butuh_cek_ukuran','belum_bayar','batal','gagal'];
+              $isBlocked = in_array($pesanan->status, $blockedStates, true);
 
-  if ($pesanan->status === 'di_proses') {
-      $options = ['dikerjakan' => 'Dikerjakan', 'selesai' => 'Selesai'];
-  } elseif ($pesanan->status === 'dikerjakan') {
-      $options = ['di_proses' => 'Di Proses', 'selesai' => 'Selesai'];
-  } elseif ($pesanan->status === 'selesai') {
-      $options = ['di_proses' => 'Di Proses', 'dikerjakan' => 'Dikerjakan'];
-  } elseif ($pesanan->status === 'pengembalian_dana') {
-      $options = ['pengembalian_selesai' => 'Pengembalian Selesai'];
-  } elseif ($pesanan->status === 'pengembalian_selesai') {
-      $options = ['pengembalian_dana' => 'Pengembalian Dana'];
-  } else {
-      $options = [];
-  }
-@endphp
+              if ($pesanan->status === 'di_proses') {
+                $options = ['dikerjakan' => 'Dikerjakan', 'selesai' => 'Selesai'];
+              } elseif ($pesanan->status === 'dikerjakan') {
+                $options = ['di_proses' => 'Di Proses', 'selesai' => 'Selesai'];
+              } elseif ($pesanan->status === 'selesai') {
+                $options = ['di_proses' => 'Di Proses', 'dikerjakan' => 'Dikerjakan'];
+              } elseif ($pesanan->status === 'pengembalian_dana') {
+                $options = ['pengembalian_selesai' => 'Pengembalian Selesai'];
+              } elseif ($pesanan->status === 'pengembalian_selesai') {
+                $options = ['pengembalian_dana' => 'Pengembalian Dana'];
+              } else {
+                $options = [];
+              }
 
+              try {
+                $hasKeuntunganCol = \Illuminate\Support\Facades\Schema::hasColumn($pesanan->getTable(), 'keuntungan');
+              } catch (\Throwable $e) {
+                $hasKeuntunganCol = false;
+              }
+            @endphp
 
-            <tr class="hover:bg-gray-100 border-b border-gray-300"
-                x-data="statusMenu({
-                  id: {{ $pesanan->id }},
-                  current: '{{ $pesanan->status }}',
-                  blocked: {{ $isBlocked ? 'true' : 'false' }},
-                  options: @js($options),
-                  labelMap: @js($labels)
-                })">
+            <tr
+              class="hover:bg-gray-100 border-b border-gray-300"
+              x-data="statusMenu({
+                id: {{ $pesanan->id }},
+                current: '{{ $pesanan->status }}',
+                blocked: {{ $isBlocked ? 'true' : 'false' }},
+                options: @js($options),
+                labelMap: @js($labels)
+              })"
+            >
               <td class="px-5 py-3 border-r">{{ $pemesanan->firstItem() + $loop->index }}</td>
               <td class="px-5 py-3 border-r">{{ $pesanan->pelanggan->name ?? '-' }}</td>
               <td class="px-5 py-3 border-r">{{ $pesanan->pelanggan->address ?? '-' }}</td>
@@ -139,23 +167,34 @@
                   <div class="mb-1">{{ $d->nama_produk ?? $d->produk->nama ?? '-' }}</div>
                 @endforeach
               </td>
+
               <td class="px-5 py-3 border-r whitespace-nowrap">
-                @if($pesanan->total_harga > 0)
-                  Rp {{ number_format($pesanan->total_harga,0,',','.') }}
+                @if((float)$pesanan->total_harga > 0)
+                  <div>Rp {{ number_format($pesanan->total_harga,0,',','.') }}</div>
                 @else
-                  —
+                  <span title="Menunggu perincian kebutuhan">—</span>
                 @endif
               </td>
 
               <td class="px-5 py-3 border-r">
                 <div class="inline-block">
-                  <button x-ref="btn" type="button"
-                          @click.stop="toggle($event.currentTarget)"
-                          :disabled="blocked || Object.keys(options).length === 0"
-                          class="px-3 py-1 rounded {{ $badge }} disabled:opacity-60 disabled:cursor-not-allowed hover:ring-2 hover:ring-offset-2 hover:ring-gray-300 flex items-center gap-1">
+                  <button
+                    x-ref="btn"
+                    type="button"
+                    @click.stop="toggle($event.currentTarget)"
+                    :disabled="blocked || Object.keys(options).length === 0"
+                    :aria-expanded="open ? 'true' : 'false'"
+                    class="px-3 py-1 rounded {{ $badge }} disabled:opacity-60 disabled:cursor-not-allowed hover:ring-2 hover:ring-offset-2 hover:ring-gray-300 flex items-center gap-1"
+                  >
                     <span x-text="labelMap[value] ?? value"></span>
-                    <svg x-show="!blocked && Object.keys(options).length"
-                         class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z"/></svg>
+                    <svg
+                      x-show="!blocked && Object.keys(options).length"
+                      class="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
+                    </svg>
                   </button>
                 </div>
 
@@ -167,10 +206,12 @@
               </td>
 
               <td class="px-5 py-3">
-                @if($pesanan->status === 'butuh_cek_ukuran')
-                  <a href="{{ route('admin.pemesanan.kebutuhan.edit', $pesanan->id) }}"
-                     class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                    Isi Kebutuhan
+                @if($pesanan->status === 'butuh_cek_ukuran' || ((float)$pesanan->total_harga) <= 0)
+                  <a
+                    href="{{ route('admin.pemesanan.kebutuhan.edit', $pesanan->id) }}"
+                    class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                  >
+                    Kebutuhan
                   </a>
                 @else
                   <span class="text-gray-400">—</span>
@@ -179,7 +220,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="7" class="text-center py-10 text-gray-500 font-semibold">
+              <td colspan="8" class="text-center py-10 text-gray-500 font-semibold">
                 Tidak ada data pemesanan.
               </td>
             </tr>
@@ -196,10 +237,8 @@
           <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
           <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
         @else
-          <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}"
-                 class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
-          <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}"
-                 class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
+          <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
+          <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
         @endif
       </div>
 
@@ -210,26 +249,24 @@
           $start = max(1, $current - 2);
           $end = min($last, $start + 4);
           if ($end - $start < 4) {
-              $start = max(1, $end - 4);
+            $start = max(1, $end - 4);
           }
         @endphp
 
         @for ($i = $start; $i <= $end; $i++)
           <li>
-            <a href="{{ $pemesanan->appends(request()->except('page'))->url($i) }}"
-               class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
-              {{ $i }}
-            </a>
+            <a
+              href="{{ $pemesanan->appends(request()->except('page'))->url($i) }}"
+              class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}"
+            >{{ $i }}</a>
           </li>
         @endfor
       </div>
 
       <div class="inline-flex space-x-1 ml-2">
         @if ($pemesanan->hasMorePages())
-          <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}"
-                 class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
-          <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}"
-                 class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
+          <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
+          <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
         @else
           <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
           <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
@@ -245,6 +282,7 @@ function ordersRealtime(){
     timer: null,
     period: 10000,
     statusText: 'Sinkron otomatis aktif',
+    ctrl: null,
     start(){
       this.loop();
       document.addEventListener('visibilitychange', () => {
@@ -257,17 +295,40 @@ function ordersRealtime(){
     },
     async refresh(){
       try{
+        this.ctrl?.abort();
+        this.ctrl = new AbortController();
+
         this.statusText = 'Menyinkronkan...';
-        const res = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const res = await fetch(window.location.href, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          signal: this.ctrl.signal
+        });
+
+        if (res.status === 401 || res.redirected) {
+          window.location.reload();
+          return;
+        }
+
         const html = await res.text();
         const doc  = new DOMParser().parseFromString(html, 'text/html');
+
         const newTable = doc.getElementById('ordersTableWrap');
-        const newPag   = doc.getElementById('paginationWrap');
-        if (newTable) document.getElementById('ordersTableWrap').innerHTML = newTable.innerHTML;
-        if (newPag)   document.getElementById('paginationWrap').innerHTML  = newPag.innerHTML;
+        const tableWrap = document.getElementById('ordersTableWrap');
+        if (newTable && tableWrap) {
+          tableWrap.innerHTML = newTable.innerHTML;
+          if (window.Alpine?.initTree) Alpine.initTree(tableWrap);
+        }
+
+        const newPag = doc.getElementById('paginationWrap');
+        const pagWrap = document.getElementById('paginationWrap');
+        if (newPag && pagWrap) {
+          pagWrap.innerHTML = newPag.innerHTML;
+          if (window.Alpine?.initTree) Alpine.initTree(pagWrap);
+        }
+
         this.statusText = 'Terakhir sinkron: ' + new Date().toLocaleTimeString();
       } catch(e){
-        this.statusText = 'Gagal sinkron, mencoba lagi...';
+        if (e.name !== 'AbortError') this.statusText = 'Gagal sinkron, mencoba lagi...';
       }
     }
   }

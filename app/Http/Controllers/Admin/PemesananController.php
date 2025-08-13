@@ -17,7 +17,7 @@ class PemesananController extends Controller
 
         if ($request->filled('search')) {
             $q = trim($request->search);
-            $query->whereHas('pelanggan', fn ($qq) => $qq->where('name', 'like', "%{$q}%"));
+            $query->whereHas('pelanggan', fn($qq) => $qq->where('name', 'like', "%{$q}%"));
         }
 
         if ($request->filled('status')) {
@@ -26,7 +26,9 @@ class PemesananController extends Controller
             $query->where('status', '!=', 'pending');
         }
 
-        $pemesanan = $query->orderByDesc('created_at')->paginate(10)->appends($request->query());
+        $pemesanan = $query->orderByDesc('created_at')
+            ->paginate(10)
+            ->appends($request->query());
 
         return view('Admin.pemesanan', compact('pemesanan'));
     }
@@ -57,10 +59,10 @@ class PemesananController extends Controller
         }
 
         $allowed = [
-            'di_proses' => ['dikerjakan', 'selesai'],
-            'dikerjakan' => ['di_proses', 'selesai'],
-            'selesai' => ['di_proses', 'dikerjakan'],
-            'pengembalian_dana' => ['pengembalian_selesai'],
+            'di_proses'            => ['dikerjakan', 'selesai'],
+            'dikerjakan'           => ['di_proses', 'selesai'],
+            'selesai'              => ['di_proses', 'dikerjakan'],
+            'pengembalian_dana'    => ['pengembalian_selesai'],
             'pengembalian_selesai' => ['pengembalian_dana'],
         ];
 
@@ -84,7 +86,7 @@ class PemesananController extends Controller
         ])->findOrFail($id);
 
         return view('Admin.pemesanan_kebutuhan', [
-            'pesanan' => $pesanan,
+            'pesanan'        => $pesanan,
             'fieldsByDetail' => [],
         ]);
     }
@@ -97,30 +99,37 @@ class PemesananController extends Controller
         ])->findOrFail($id);
 
         $rules = [
-            'items' => ['required', 'array', 'min:1'],
-            'items.*' => ['array', 'min:1'],
-            'items.*.*.kategori' => ['required', Rule::in(['bahan_besi', 'bahan_lainnya', 'jasa'])],
-            'items.*.*.nama' => ['required', 'string', 'max:255'],
-            'items.*.*.kuantitas' => ['required', 'numeric', 'min:0.01'],
-            'items.*.*.harga' => ['required', 'integer', 'min:0'],
+            'keuntungan'            => ['required', 'numeric', 'min:0', 'max:99'],
+            'items'                 => ['required', 'array', 'min:1'],
+            'items.*'               => ['array', 'min:1'],
+            'items.*.*.kategori'    => ['required', Rule::in(['bahan_besi', 'bahan_lainnya', 'jasa'])],
+            'items.*.*.nama'        => ['required', 'string', 'max:255'],
+            'items.*.*.kuantitas'   => ['required', 'numeric', 'min:0.01'],
+            'items.*.*.harga'       => ['required', 'integer', 'min:0'],
         ];
 
         $messages = [
-            'items.required' => 'Minimal satu baris kebutuhan harus diisi.',
-            'items.array' => 'Format kebutuhan tidak valid.',
-            'items.*.array' => 'Format kebutuhan tidak valid.',
+            'keuntungan.required' => 'Keuntungan wajib diisi.',
+            'keuntungan.integer'  => 'Keuntungan harus bilangan bulat.',
+            'keuntungan.min'      => 'Keuntungan minimal 1.',
+            'items.required'      => 'Minimal satu baris kebutuhan harus diisi.',
+            'items.array'         => 'Format kebutuhan tidak valid.',
+            'items.*.array'       => 'Format kebutuhan tidak valid.',
             'items.*.*.kategori.required' => 'Kategori kebutuhan harus dipilih.',
-            'items.*.*.kategori.in' => 'Kategori kebutuhan tidak valid.',
-            'items.*.*.nama.required' => 'Nama kebutuhan harus diisi.',
-            'items.*.*.kuantitas.required' => 'Kuantitas harus diisi.',
+            'items.*.*.kategori.in'       => 'Kategori kebutuhan tidak valid.',
+            'items.*.*.nama.required'     => 'Nama kebutuhan harus diisi.',
+            'items.*.*.kuantitas.required'=> 'Kuantitas harus diisi.',
             'items.*.*.kuantitas.numeric' => 'Kuantitas harus berupa angka.',
-            'items.*.*.kuantitas.min' => 'Kuantitas minimal 0.01.',
-            'items.*.*.harga.required' => 'Harga harus diisi.',
-            'items.*.*.harga.integer' => 'Harga harus berupa bilangan bulat.',
-            'items.*.*.harga.min' => 'Harga minimal 0.',
+            'items.*.*.kuantitas.min'     => 'Kuantitas minimal 0.01.',
+            'items.*.*.harga.required'    => 'Harga harus diisi.',
+            'items.*.*.harga.integer'     => 'Harga harus berupa bilangan bulat.',
+            'items.*.*.harga.min'         => 'Harga minimal 0.',
         ];
 
         $validated = $request->validate($rules, $messages);
+
+        $k = (float) ($validated['keuntungan'] ?? 3);
+        if ($k < 0) $k = 0.0;
 
         $detailMap = $pesanan->detail->keyBy('id');
 
@@ -133,10 +142,12 @@ class PemesananController extends Controller
         })->all();
 
         if (empty($itemsByDetail)) {
-            return back()->withErrors(['items' => 'Tidak ada kebutuhan yang valid untuk disimpan.'])->withInput();
+            return back()
+                ->withErrors(['items' => 'Tidak ada kebutuhan yang valid untuk disimpan.'])
+                ->withInput();
         }
 
-        DB::transaction(function () use ($pesanan, $itemsByDetail, $detailMap) {
+        DB::transaction(function () use ($pesanan, $itemsByDetail, $detailMap, $k) {
             $pesanan->kebutuhan()->delete();
 
             $sumBesi = 0;
@@ -147,19 +158,19 @@ class PemesananController extends Controller
                 $produkId = optional($detailMap[$detailId]->produk)->id;
 
                 foreach ($rows as $row) {
-                    $qty = (float) $row['kuantitas'];
-                    $harga = (int) $row['harga'];
+                    $qty      = (float) $row['kuantitas'];
+                    $harga    = (int) $row['harga'];
                     $subtotal = (int) round($qty * $harga);
 
                     PemesananKebutuhan::create([
                         'pemesanan_id' => $pesanan->id,
                         'pelanggan_id' => $pesanan->pelanggan_id,
-                        'produk_id' => $produkId,
-                        'kategori' => $row['kategori'],
-                        'nama' => $row['nama'],
-                        'kuantitas' => $qty,
-                        'harga' => $harga,
-                        'subtotal' => $subtotal,
+                        'produk_id'    => $produkId,
+                        'kategori'     => $row['kategori'],
+                        'nama'         => $row['nama'],
+                        'kuantitas'    => $qty,
+                        'harga'        => $harga,
+                        'subtotal'     => $subtotal,
                     ]);
 
                     if ($row['kategori'] === 'bahan_besi') {
@@ -172,13 +183,13 @@ class PemesananController extends Controller
                 }
             }
 
-            $total = (int) (($sumBesi + $sumLain) * 3);
-            $bersih = (int) ($total - $sumBesi - $sumLain - $sumJasa);
+            $totalBahan = $sumBesi + $sumLain;
+            $grandTotal = (int) round($totalBahan * $k);
+            $bersih = (int) ($grandTotal - ($totalBahan + $sumJasa));
 
             if ($pesanan->status === 'butuh_cek_ukuran') {
                 $pesanan->status = 'belum_bayar';
             }
-
             if (\Schema::hasColumn($pesanan->getTable(), 'total_bahan_besi')) {
                 $pesanan->total_bahan_besi = $sumBesi;
             }
@@ -191,11 +202,14 @@ class PemesananController extends Controller
             if (\Schema::hasColumn($pesanan->getTable(), 'pendapatan_bersih')) {
                 $pesanan->pendapatan_bersih = $bersih;
             }
+            if (\Schema::hasColumn($pesanan->getTable(), 'keuntungan')) {
+                $pesanan->keuntungan = $k;
+            }
 
-            $pesanan->total_harga = $total;
+            $pesanan->total_harga = $grandTotal;
             $pesanan->save();
         });
 
-        return redirect()->route('admin.pemesanan.index')->with('success', 'Kebutuhan disimpan.');
+        return redirect()->route('admin.pemesanan.index');
     }
 }

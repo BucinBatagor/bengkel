@@ -1,4 +1,3 @@
-{{-- resources/views/Admin/adminLogin.blade.php --}}
 @extends('Template.authAdmin')
 
 @section('title', 'Login')
@@ -15,7 +14,6 @@
         $credError = $errors->first('email') === 'Email atau password salah.' ? $errors->first('email') : null;
       @endphp
 
-      {{-- Email --}}
       <div>
         <label for="email" class="block mb-1 font-medium">Email</label>
         <input
@@ -35,7 +33,6 @@
         @endif
       </div>
 
-      {{-- Password --}}
       <div class="relative">
         <label for="password" class="block mb-1 font-medium">Password</label>
         <input
@@ -50,13 +47,12 @@
           <i class="fa-solid fa-eye-slash" id="eyeIcon"></i>
         </span>
 
-        @error('password')
-          <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @else
-          @if($credError)
-            <p class="mt-1 text-sm text-red-600">{{ $credError }}</p>
-          @endif
-        @enderror
+        @php $passwordErr = $errors->first('password'); @endphp
+        @if($passwordErr)
+          <p class="mt-1 text-sm text-red-600">{{ $passwordErr }}</p>
+        @elseif($credError)
+          <p class="mt-1 text-sm text-red-600">{{ $credError }}</p>
+        @endif
       </div>
 
       <div class="flex justify-between items-center text-sm">

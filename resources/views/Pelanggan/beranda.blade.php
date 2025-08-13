@@ -1,4 +1,3 @@
-{{-- resources/views/Pelanggan/beranda.blade.php --}}
 @extends('Template.pelanggan')
 
 @section('title', 'Beranda')
@@ -17,47 +16,29 @@
 <section class="bg-gray-300 py-16">
     <div class="max-w-screen-xl mx-auto px-4 text-center">
         <h2 class="text-3xl font-extrabold mb-6 text-gray-800">Layanan Bengkel Las Terbaik</h2>
-        <p class="text-gray-700 mb-6 max-w-xl mx-auto">
-            Lihat berbagai pilihan produk kami yang siap menunjang kebutuhan konstruksi dan dekorasi Anda.
-        </p>
-        <a href="/katalog" class="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-700 transition">
-            Lihat Semua Katalog
-        </a>
+        <p class="text-gray-700 mb-6 max-w-xl mx-auto">Lihat berbagai pilihan produk kami yang siap menunjang kebutuhan konstruksi dan dekorasi Anda.</p>
+        <a href="/katalog" class="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-700 transition">Lihat Semua Katalog</a>
     </div>
 </section>
 
 <section class="py-16 bg-white">
     <div class="max-w-screen-xl mx-auto px-4">
         <h2 class="text-3xl font-bold mb-10 text-center">Produk Terbaru</h2>
-
         <div class="flex flex-wrap justify-center gap-6">
-            @if(count($kategoriList))
+            @if (count($kategoriList))
                 @foreach ($kategoriList as $kategori)
-                    <a href="{{ route('produk.show', $kategori['id']) }}"
-                       class="w-full sm:w-[47%] md:w-[30%] border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition bg-white flex flex-col">
+                    <a href="{{ route('produk.show', ['id' => $kategori['id'], 'back' => url()->current()]) }}" class="w-full sm:w-[47%] md:w-[30%] border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition bg-white flex flex-col">
                         @php
-                            $imgPath = !empty($kategori['img']) && file_exists(public_path('storage/' . $kategori['img']))
-                                ? 'storage/' . $kategori['img']
-                                : 'assets/default.jpg';
+                            $imgPath = !empty($kategori['img']) && file_exists(public_path('storage/' . $kategori['img'])) ? 'storage/' . $kategori['img'] : 'assets/default.jpg';
                         @endphp
-                        <img src="{{ asset($imgPath) }}"
-                             alt="{{ $kategori['nama_produk'] }}"
-                             class="w-full h-48 sm:h-52 object-cover" />
-
+                        <img src="{{ asset($imgPath) }}" alt="{{ $kategori['nama_produk'] }}" class="w-full h-48 sm:h-52 object-cover">
                         <div class="p-4 flex flex-col flex-1 justify-between">
                             <div class="space-y-1">
-                                <h3 class="text-lg font-semibold text-gray-800 truncate">
-                                    {{ $kategori['nama_produk'] }}
-                                </h3>
-                                <p class="text-sm text-gray-500 truncate">
-                                    {{ $kategori['nama'] }}
-                                </p>
+                                <h3 class="text-lg font-semibold text-gray-800 truncate">{{ $kategori['nama_produk'] }}</h3>
+                                <p class="text-sm text-gray-500 truncate">{{ $kategori['nama'] }}</p>
                             </div>
-
                             <div class="mt-4 text-center">
-                                <span class="inline-block text-blue-600 font-medium hover:underline">
-                                    Lihat Detail
-                                </span>
+                                <span class="inline-block text-blue-600 font-medium hover:underline">Lihat Detail</span>
                             </div>
                         </div>
                     </a>

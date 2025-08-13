@@ -1,4 +1,3 @@
-{{-- resources/views/Admin/tambahKatalog.blade.php --}}
 @extends('Template.admin')
 
 @section('title', 'Tambah Katalog')
@@ -6,7 +5,6 @@
 @section('content')
 <section class="flex flex-col items-center px-6 py-6 w-full">
   <div class="bg-white rounded-lg shadow px-6 py-6 w-full max-w-screen-xl">
-    {{-- Tombol Kembali --}}
     <div class="mb-4">
       <a href="{{ route('admin.katalog.index') }}"
         class="inline-flex items-center text-sm font-medium text-gray-700 bg-white border border-gray-300 px-4 py-2 rounded hover:bg-gray-100 transition">
@@ -20,7 +18,6 @@
     <form action="{{ route('admin.katalog.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
       @csrf
 
-      {{-- Nama Produk --}}
       <div>
         <label for="nama" class="block mb-2 font-medium">Nama Produk</label>
         <input
@@ -36,7 +33,6 @@
         @enderror
       </div>
 
-      {{-- Kategori --}}
       <div>
         <label for="kategori_id" class="block mb-2 font-medium">Kategori</label>
         <select
@@ -56,7 +52,6 @@
         @enderror
       </div>
 
-      {{-- Deskripsi (wajib) --}}
       <div>
         <label for="deskripsi" class="block mb-2 font-medium">Deskripsi</label>
         <textarea
@@ -71,7 +66,6 @@
         @enderror
       </div>
 
-      {{-- Gambar Produk (multi) --}}
       <div>
         <label class="block mb-2 font-medium">Gambar Produk</label>
 
@@ -85,7 +79,7 @@
             id="gambar"
             name="gambar[]"
             multiple
-            accept="image/jpeg,image/png,.jpg,.jpeg,.png" {{-- hanya JPG/JPEG/PNG --}}
+            accept="image/jpeg,image/png,.jpg,.jpeg,.png"
             class="block w-full text-sm text-gray-700
                    file:mr-4 file:py-2 file:px-3
                    file:rounded file:border-0
@@ -94,7 +88,6 @@
           >
         </div>
 
-        {{-- Error untuk tiap file --}}
         @if($errors->has('gambar.*'))
           <p class="mt-2 text-sm text-red-600">{{ $errors->first('gambar.*') }}</p>
         @endif
@@ -104,7 +97,6 @@
         </p>
       </div>
 
-      {{-- Aksi --}}
       <div class="flex justify-end">
         <button type="submit" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
           Simpan

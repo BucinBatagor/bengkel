@@ -1,4 +1,3 @@
-{{-- resources/views/Pelanggan/katalog.blade.php --}}
 @extends('Template.pelanggan')
 
 @section('title', 'Katalog')
@@ -9,13 +8,12 @@
         <div class="bg-white rounded-lg shadow p-6 min-h-[550px]">
             <form method="GET" id="filterForm" class="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div class="relative">
-                    <select name="kategori" onchange="document.getElementById('filterForm').submit();"
-                        class="appearance-none bg-black text-white font-semibold py-2 px-4 pr-8 rounded leading-tight focus:outline-none h-[42px]">
+                    <select name="kategori" onchange="document.getElementById('filterForm').submit();" class="appearance-none bg-black text-white font-semibold py-2 px-4 pr-8 rounded leading-tight focus:outline-none h-[42px]">
                         <option value="Semua" {{ request('kategori') === 'Semua' ? 'selected' : '' }}>Semua</option>
                         @foreach ($kategori as $kat)
-                        <option value="{{ $kat }}" {{ request('kategori') === $kat ? 'selected' : '' }}>
-                            {{ $kat }}
-                        </option>
+                            <option value="{{ $kat }}" {{ request('kategori') === $kat ? 'selected' : '' }}>
+                                {{ $kat }}
+                            </option>
                         @endforeach
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
@@ -26,25 +24,13 @@
                 </div>
 
                 <div class="relative w-full max-w-md">
-                    <input
-                        type="text"
-                        name="q"
-                        id="searchInput"
-                        value="{{ request('q') }}"
-                        placeholder="Cari nama produk..."
-                        class="w-full px-4 pr-16 py-2 bg-gray-100 border rounded-lg h-[42px] text-sm focus:outline-none"
-                    />
-                    @if(request('q'))
-                    <button type="button" onclick="clearSearch()"
-                        class="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black focus:outline-none">
-                        &times;
-                    </button>
+                    <input type="text" name="q" id="searchInput" value="{{ request('q') }}" placeholder="Cari nama produk..." class="w-full px-4 pr-16 py-2 bg-gray-100 border rounded-lg h-[42px] text-sm focus:outline-none">
+                    @if (request('q'))
+                        <button type="button" onclick="clearSearch()" class="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black focus:outline-none">&times;</button>
                     @endif
-                    <button type="submit"
-                        class="absolute right-0 top-0 bottom-0 bg-black text-white rounded-r-lg px-3 flex items-center justify-center hover:bg-gray-800">
+                    <button type="submit" class="absolute right-0 top-0 bottom-0 bg-black text-white rounded-r-lg px-3 flex items-center justify-center hover:bg-gray-800">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </button>
                 </div>
@@ -52,29 +38,19 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 @forelse ($produks as $produk)
-                <a href="{{ route('produk.show', $produk->id) }}?back={{ urlencode(request()->fullUrl()) }}"
-                   class="block border rounded-lg overflow-hidden shadow hover:shadow-lg transition bg-white">
-                    <img
-                        src="{{ $produk->gambar->first() ? asset('storage/' . $produk->gambar->first()->gambar) : asset('assets/default.jpg') }}"
-                        onerror="this.onerror=null;this.src='{{ asset('assets/default.jpg') }}';"
-                        alt="{{ $produk->nama }}"
-                        class="w-full h-48 object-cover"
-                    />
-                    <div class="p-4 flex flex-col justify-between h-[100px]">
-                        <div class="space-y-1">
-                            <h3 class="text-base font-semibold text-gray-800 truncate">
-                                {{ $produk->nama }}
-                            </h3>
-                            <p class="text-sm text-gray-500 truncate">
-                                {{ $produk->kategori }}
-                            </p>
+                    <a href="{{ route('produk.show', $produk->id) }}?back={{ urlencode(request()->fullUrl()) }}" class="block border rounded-lg overflow-hidden shadow hover:shadow-lg transition bg-white">
+                        <img src="{{ $produk->gambar->first() ? asset('storage/' . $produk->gambar->first()->gambar) : asset('assets/default.jpg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/default.jpg') }}';" alt="{{ $produk->nama }}" class="w-full h-48 object-cover">
+                        <div class="p-4 flex flex-col justify-between h-[100px]">
+                            <div class="space-y-1">
+                                <h3 class="text-base font-semibold text-gray-800 truncate">{{ $produk->nama }}</h3>
+                                <p class="text-sm text-gray-500 truncate">{{ $produk->kategori }}</p>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
                 @empty
-                <div class="col-span-full flex items-center justify-center text-gray-500 min-h-[400px]">
-                    <p class="text-center">Tidak ada produk ditemukan.</p>
-                </div>
+                    <div class="col-span-full flex items-center justify-center text-gray-500 min-h-[400px]">
+                        <p class="text-center">Tidak ada produk ditemukan.</p>
+                    </div>
                 @endforelse
             </div>
         </div>
@@ -86,14 +62,8 @@
                         <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
                         <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
                     @else
-                        <li>
-                            <a href="{{ $produks->appends(request()->except('page'))->url(1) }}"
-                               class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a>
-                        </li>
-                        <li>
-                            <a href="{{ $produks->appends(request()->except('page'))->previousPageUrl() }}"
-                               class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a>
-                        </li>
+                        <li><a href="{{ $produks->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
+                        <li><a href="{{ $produks->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
                     @endif
                 </div>
 
@@ -110,24 +80,15 @@
 
                     @for ($i = $start; $i <= $end; $i++)
                         <li>
-                            <a href="{{ $produks->appends(request()->except('page'))->url($i) }}"
-                               class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">
-                                {{ $i }}
-                            </a>
+                            <a href="{{ $produks->appends(request()->except('page'))->url($i) }}" class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">{{ $i }}</a>
                         </li>
                     @endfor
                 </div>
 
                 <div class="inline-flex space-x-1 ml-2">
                     @if ($produks->hasMorePages())
-                        <li>
-                            <a href="{{ $produks->appends(request()->except('page'))->nextPageUrl() }}"
-                               class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a>
-                        </li>
-                        <li>
-                            <a href="{{ $produks->appends(request()->except('page'))->url($produks->lastPage()) }}"
-                               class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a>
-                        </li>
+                        <li><a href="{{ $produks->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
+                        <li><a href="{{ $produks->appends(request()->except('page'))->url($produks->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
                     @else
                         <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
                         <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>

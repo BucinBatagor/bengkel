@@ -6,9 +6,7 @@
 <section class="min-h-screen flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-lg bg-white p-6 sm:p-8 rounded-lg shadow-md text-center">
         @if (Auth::guard('pelanggan')->user()?->hasVerifiedEmail())
-            <script>
-                window.location.href = '/beranda';
-            </script>
+            <script>window.location.href = '/beranda';</script>
         @else
             <h2 class="text-2xl font-bold mb-4 text-black">Verifikasi Email</h2>
             <p class="text-gray-700">

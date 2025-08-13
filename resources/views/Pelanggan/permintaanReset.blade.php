@@ -15,27 +15,14 @@
 
         <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
             @csrf
-
             <div>
                 <label for="email" class="block text-sm font-medium">Email</label>
-                <input
-                    type="text"
-                    name="email"
-                    id="email"
-                    value="{{ old('email') }}"
-                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
-                >
+                <input type="text" name="email" id="email" value="{{ old('email') }}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200">
                 @error('email')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
-
-            <button
-                type="submit"
-                class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition"
-            >
-                Kirim Link Reset
-            </button>
+            <button type="submit" class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">Kirim Link Reset</button>
         </form>
 
         <p class="mt-4 text-center text-sm text-gray-600">
