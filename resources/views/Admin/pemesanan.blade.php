@@ -206,7 +206,7 @@
               </td>
 
               <td class="px-5 py-3">
-                @if($pesanan->status === 'butuh_cek_ukuran' || ((float)$pesanan->total_harga) <= 0)
+                @if($pesanan->status !== 'batal' && ($pesanan->status === 'butuh_cek_ukuran' || ((float)$pesanan->total_harga) <= 0))
                   <a
                     href="{{ route('admin.pemesanan.kebutuhan.edit', $pesanan->id) }}"
                     class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"

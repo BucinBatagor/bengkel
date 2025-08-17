@@ -3,7 +3,7 @@
 @section('title', 'Keranjang Saya')
 
 @section('content')
-<section class="py-10 bg-gray-200 min-h-screen" x-data="keranjangApp({{ $items->pluck('id')->toJson() }})">
+<section class="py-10 bg-gray-200 min-h-screen" x-data="keranjangApp({{ $items->pluck('line_id')->toJson() }})">
   <div class="max-w-screen-xl mx-auto px-4">
     <div class="bg-white rounded-xl shadow p-6">
       <h1 class="text-2xl font-bold mb-6">Keranjang Saya</h1>
@@ -96,22 +96,39 @@ function keranjangApp(initialIds) {
     popup: { show: false, title: '', message: '', type: 'alert', onConfirm: () => {}, onCancel: () => {} },
     showWaitingModal: false,
     itemData: {!! json_encode(
-      $items->mapWithKeys(function($item){
-        return [$item['id'] => [
-          'nama' => $item['nama'],
+      collect($items)->mapWithKeys(function($item){
+        return [$item['line_id'] => [
+          'nama'     => $item['nama'],
           'kategori' => $item['kategori'],
-          'gambar' => $item['gambar']
+          'gambar'   => $item['gambar']
         ]];
       })
     ) !!},
     isAllSelected() {
-      return this.selected.length === this.allIds.length && this.allIds.length > 0;
+      return this.allIds.length > 0 && this.selected.length === this.allIds.length;
     },
     toggleSelectAll() {
       this.selected = this.isAllSelected() ? [] : [...this.allIds];
     },
     toggleItemSelection(id) {
-      this.selected.includes(id) ? this.selected = this.selected.filter(i => i !== id) : this.selected.push(id);
+      this.selected = this.selected.includes(id)
+        ? this.selected.filter(i => i !== id)
+        : [...this.selected, id];
+    },
+    updateCartBadges() {
+      const n = this.allIds.length;
+      const ids = ['cartBadge', 'cartBadgeMobile'];
+      ids.forEach((elId) => {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (n > 0) {
+          el.textContent = n;
+          el.style.display = '';
+        } else {
+          el.textContent = '';
+          el.style.display = 'none';
+        }
+      });
     },
     confirmDelete(id) {
       this.popup = {
@@ -127,11 +144,13 @@ function keranjangApp(initialIds) {
       this.popup.show = false;
       fetch(`/keranjang/hapus/${id}`, {
         method: 'DELETE',
-        headers: {
-          'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          'Accept': 'application/json'
-        }
-      }).then(() => location.reload());
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+      }).then(() => {
+        this.allIds = this.allIds.filter(i => i !== id);
+        this.selected = this.selected.filter(i => i !== id);
+        delete this.itemData[id];
+        this.updateCartBadges();
+      });
     },
     openConfirm() {
       if (!this.selected.length) {
@@ -146,18 +165,18 @@ function keranjangApp(initialIds) {
       try {
         const res = await fetch('{{ route('keranjang.pesan') }}', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-          },
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
           body: JSON.stringify({ items: this.selected, kirim_email: true })
         });
         const d = await res.json();
         if (d.success) {
+          const removed = new Set(this.selected);
+          this.allIds = this.allIds.filter(id => !removed.has(id));
+          this.selected = [];
+          for (const rid of removed) { delete this.itemData[rid]; }
           this.showConfirmModal = false;
           this.showWaitingModal = true;
-          this.allIds = [];
-          this.selected = [];
+          this.updateCartBadges();
         } else {
           alert(d.error || 'Gagal membuat pesanan.');
         }

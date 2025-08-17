@@ -9,16 +9,8 @@ return new class extends Migration {
     {
         Schema::create('pemesanan_detail', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pemesanan_id')
-                ->nullable()
-                ->constrained('pemesanan')
-                ->cascadeOnDelete();
-            $table->foreignId('pelanggan_id')
-                ->constrained('pelanggan')
-                ->cascadeOnDelete();
-            $table->foreignId('produk_id')
-                ->constrained('produk')
-                ->cascadeOnDelete();
+            $table->foreignId('pemesanan_id')->nullable()->constrained('pemesanan')->cascadeOnDelete();
+            $table->foreignId('produk_id')->nullable()->constrained('produk')->nullOnDelete()->cascadeOnUpdate();
             $table->string('nama_produk');
             $table->timestamps();
         });

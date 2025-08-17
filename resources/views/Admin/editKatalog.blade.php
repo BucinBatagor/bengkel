@@ -13,7 +13,13 @@
       </a>
     </div>
 
-    <h1 class="text-2xl font-bold mb-6">EDIT PRODUK</h1>
+    <h1 class="text-2xl font-bold mb-3">EDIT PRODUK</h1>
+
+    @if (session('info'))
+      <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+        {{ session('info') }}
+      </div>
+    @endif
 
     @if(session('success'))
       <div class="bg-green-100 text-green-800 p-4 rounded mb-4">

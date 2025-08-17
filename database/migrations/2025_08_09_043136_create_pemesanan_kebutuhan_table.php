@@ -10,7 +10,6 @@ return new class extends Migration {
         Schema::create('pemesanan_kebutuhan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pemesanan_id')->constrained('pemesanan')->cascadeOnDelete();
-            $table->foreignId('pelanggan_id')->nullable()->constrained('pelanggan')->nullOnDelete()->cascadeOnUpdate();
             $table->foreignId('produk_id')->nullable()->constrained('produk')->nullOnDelete()->cascadeOnUpdate();
             $table->enum('kategori', ['bahan_besi', 'bahan_lainnya', 'jasa'])->index();
             $table->string('nama');

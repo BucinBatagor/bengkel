@@ -1,10 +1,19 @@
 @php
 use Illuminate\Support\Facades\Auth;
-use App\Models\PemesananDetail;
 
-$cartCount = Auth::check()
-    ? PemesananDetail::where('pelanggan_id', Auth::id())->whereNull('pemesanan_id')->count()
-    : 0;
+$cartData  = session('cart', []);
+$cartCount = 0;
+
+if ($cartData instanceof \Illuminate\Support\Collection) {
+    $cartCount = $cartData->sum(function ($item) {
+        if (is_array($item)) return max(1, (int)($item['qty'] ?? 1));
+        return 1;
+    });
+} elseif (is_array($cartData)) {
+    foreach ($cartData as $item) {
+        $cartCount += is_array($item) ? max(1, (int)($item['qty'] ?? 1)) : 1;
+    }
+}
 @endphp
 
 @vite('resources/js/app.js')
@@ -93,13 +102,13 @@ $cartCount = Auth::check()
 
     <div class="space-y-3 text-sm">
       @if (Auth::check())
-        <a href="/profil" class="block px-4 py-2 rounded font-medium {{ request()->is('profil') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Profil</a>
         <a href="{{ route('keranjang.index') }}" class="flex items-center justify-between px-4 py-2 rounded font-medium {{ request()->is('keranjang') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">
           <span>Keranjang</span>
           @if ($cartCount > 0)
             <span class="bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">{{ $cartCount }}</span>
           @endif
         </a>
+        <a href="/profil" class="block px-4 py-2 rounded font-medium {{ request()->is('profil') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Profil</a>
         <a href="/pesanan" class="block px-4 py-2 rounded font-medium {{ request()->is('pesanan') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Status Pesanan</a>
         <hr class="border-black my-3">
         <form method="POST" action="/logout">

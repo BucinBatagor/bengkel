@@ -34,7 +34,7 @@
           id="password"
           required
           autocomplete="new-password"
-          class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
+          class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200 @error('password') border-red-500 @enderror"
         >
         <button type="button" class="absolute top-[34px] right-3 text-gray-500" id="togglePassword" aria-label="Lihat/Sembunyikan password">
           <i class="fa-solid fa-eye-slash" id="eyeIcon"></i>
@@ -52,7 +52,7 @@
           id="password_confirmation"
           required
           autocomplete="new-password"
-          class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200"
+          class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200 @error('password_confirmation') border-red-500 @enderror"
         >
         <button type="button" class="absolute top-[34px] right-3 text-gray-500" id="togglePassword2" aria-label="Lihat/Sembunyikan konfirmasi password">
           <i class="fa-solid fa-eye-slash" id="eyeIcon2"></i>

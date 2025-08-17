@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Kategori;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class KategoriController extends Controller
@@ -22,14 +22,17 @@ class KategoriController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255', 'unique:kategori,nama'],
-        ], [
-            'nama.required' => 'Nama kategori wajib diisi.',
-            'nama.string' => 'Nama kategori tidak valid.',
-            'nama.max' => 'Nama kategori maksimal 255 karakter.',
-            'nama.unique' => 'Nama kategori sudah digunakan.',
-        ]);
+        $data = $request->validate(
+            [
+                'nama' => ['required', 'string', 'max:255', 'unique:kategori,nama'],
+            ],
+            [
+                'nama.required' => 'Nama kategori wajib diisi.',
+                'nama.string'   => 'Nama kategori tidak valid.',
+                'nama.max'      => 'Nama kategori maksimal 255 karakter.',
+                'nama.unique'   => 'Nama kategori sudah digunakan.',
+            ]
+        );
 
         Kategori::create([
             'nama' => $data['nama'],
@@ -50,18 +53,29 @@ class KategoriController extends Controller
     {
         $kategori = Kategori::findOrFail($id);
 
-        $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255', Rule::unique('kategori', 'nama')->ignore($kategori->id)],
-        ], [
-            'nama.required' => 'Nama kategori wajib diisi.',
-            'nama.string' => 'Nama kategori tidak valid.',
-            'nama.max' => 'Nama kategori maksimal 255 karakter.',
-            'nama.unique' => 'Nama kategori sudah digunakan.',
-        ]);
+        $data = $request->validate(
+            [
+                'nama' => ['required', 'string', 'max:255', Rule::unique('kategori', 'nama')->ignore($kategori->id)],
+            ],
+            [
+                'nama.required' => 'Nama kategori wajib diisi.',
+                'nama.string'   => 'Nama kategori tidak valid.',
+                'nama.max'      => 'Nama kategori maksimal 255 karakter.',
+                'nama.unique'   => 'Nama kategori sudah digunakan.',
+            ]
+        );
 
-        $kategori->update([
+        $kategori->fill([
             'nama' => $data['nama'],
         ]);
+
+        if (!$kategori->isDirty()) {
+            return redirect()
+                ->route('admin.kategori.edit', $kategori->id)
+                ->with('info', 'Tidak ada perubahan yang disimpan.');
+        }
+
+        $kategori->save();
 
         return redirect()
             ->route('admin.kategori.index')

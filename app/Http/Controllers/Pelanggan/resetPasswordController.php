@@ -21,18 +21,23 @@ class ResetPasswordController extends Controller
 
     public function reset(Request $request)
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:6|confirmed',
-        ], [
-            'token.required' => 'Token tidak ditemukan.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Email tidak valid.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 6 karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
-        ]);
+        $request->validate(
+            [
+                'token'                 => 'required',
+                'email'                 => 'required|email',
+                'password'              => 'required|min:6',
+                'password_confirmation' => 'required|same:password',
+            ],
+            [
+                'token.required'                 => 'Token tidak ditemukan.',
+                'email.required'                 => 'Email wajib diisi.',
+                'email.email'                    => 'Email tidak valid.',
+                'password.required'              => 'Password wajib diisi.',
+                'password.min'                   => 'Password minimal 6 karakter.',
+                'password_confirmation.required' => 'Konfirmasi password wajib diisi.',
+                'password_confirmation.same'     => 'Konfirmasi password tidak cocok.',
+            ]
+        );
 
         $status = Password::broker('pelanggan')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),

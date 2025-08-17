@@ -17,16 +17,15 @@ class PemesananController extends Controller
 
         if ($request->filled('search')) {
             $q = trim($request->search);
-            $query->whereHas('pelanggan', fn($qq) => $qq->where('name', 'like', "%{$q}%"));
+            $query->whereHas('pelanggan', fn ($qq) => $qq->where('name', 'like', "%{$q}%"));
         }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
-        } else {
-            $query->where('status', '!=', 'pending');
         }
 
-        $pemesanan = $query->orderByDesc('created_at')
+        $pemesanan = $query
+            ->orderByDesc('created_at')
             ->paginate(10)
             ->appends($request->query());
 
@@ -36,22 +35,25 @@ class PemesananController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => ['required', Rule::in([
-                'butuh_cek_ukuran',
-                'batal',
-                'belum_bayar',
-                'gagal',
-                'di_proses',
-                'dikerjakan',
-                'selesai',
-                'pengembalian_dana',
-                'pengembalian_selesai',
-            ])],
+            'status' => [
+                'required',
+                Rule::in([
+                    'butuh_cek_ukuran',
+                    'batal',
+                    'belum_bayar',
+                    'gagal',
+                    'di_proses',
+                    'dikerjakan',
+                    'selesai',
+                    'pengembalian_dana',
+                    'pengembalian_selesai',
+                ]),
+            ],
         ]);
 
         $pesanan = Pemesanan::findOrFail($id);
         $current = $pesanan->status;
-        $target = (string) $request->input('status');
+        $target  = (string) $request->input('status');
 
         $locked = ['butuh_cek_ukuran', 'belum_bayar', 'batal', 'gagal'];
         if (in_array($current, $locked, true)) {
@@ -99,37 +101,39 @@ class PemesananController extends Controller
         ])->findOrFail($id);
 
         $rules = [
-            'keuntungan'            => ['required', 'numeric', 'min:0', 'max:99'],
-            'items'                 => ['required', 'array', 'min:1'],
-            'items.*'               => ['array', 'min:1'],
-            'items.*.*.kategori'    => ['required', Rule::in(['bahan_besi', 'bahan_lainnya', 'jasa'])],
-            'items.*.*.nama'        => ['required', 'string', 'max:255'],
-            'items.*.*.kuantitas'   => ['required', 'numeric', 'min:0.01'],
-            'items.*.*.harga'       => ['required', 'integer', 'min:0'],
+            'keuntungan'          => ['required', 'numeric', 'min:0', 'max:99'],
+            'items'               => ['required', 'array', 'min:1'],
+            'items.*'             => ['array', 'min:1'],
+            'items.*.*.kategori'  => ['required', Rule::in(['bahan_besi', 'bahan_lainnya', 'jasa'])],
+            'items.*.*.nama'      => ['required', 'string', 'max:255'],
+            'items.*.*.kuantitas' => ['required', 'numeric', 'min:0.01'],
+            'items.*.*.harga'     => ['required', 'integer', 'min:0'],
         ];
 
         $messages = [
-            'keuntungan.required' => 'Keuntungan wajib diisi.',
-            'keuntungan.integer'  => 'Keuntungan harus bilangan bulat.',
-            'keuntungan.min'      => 'Keuntungan minimal 1.',
-            'items.required'      => 'Minimal satu baris kebutuhan harus diisi.',
-            'items.array'         => 'Format kebutuhan tidak valid.',
-            'items.*.array'       => 'Format kebutuhan tidak valid.',
-            'items.*.*.kategori.required' => 'Kategori kebutuhan harus dipilih.',
-            'items.*.*.kategori.in'       => 'Kategori kebutuhan tidak valid.',
-            'items.*.*.nama.required'     => 'Nama kebutuhan harus diisi.',
-            'items.*.*.kuantitas.required'=> 'Kuantitas harus diisi.',
-            'items.*.*.kuantitas.numeric' => 'Kuantitas harus berupa angka.',
-            'items.*.*.kuantitas.min'     => 'Kuantitas minimal 0.01.',
-            'items.*.*.harga.required'    => 'Harga harus diisi.',
-            'items.*.*.harga.integer'     => 'Harga harus berupa bilangan bulat.',
-            'items.*.*.harga.min'         => 'Harga minimal 0.',
+            'keuntungan.required'           => 'Keuntungan wajib diisi.',
+            'keuntungan.numeric'            => 'Keuntungan harus berupa angka.',
+            'keuntungan.min'                => 'Keuntungan minimal 0.',
+            'items.required'                => 'Minimal satu baris kebutuhan harus diisi.',
+            'items.array'                   => 'Format kebutuhan tidak valid.',
+            'items.*.array'                 => 'Format kebutuhan tidak valid.',
+            'items.*.*.kategori.required'   => 'Kategori kebutuhan harus dipilih.',
+            'items.*.*.kategori.in'         => 'Kategori kebutuhan tidak valid.',
+            'items.*.*.nama.required'       => 'Nama kebutuhan harus diisi.',
+            'items.*.*.kuantitas.required'  => 'Kuantitas harus diisi.',
+            'items.*.*.kuantitas.numeric'   => 'Kuantitas harus berupa angka.',
+            'items.*.*.kuantitas.min'       => 'Kuantitas minimal 0.01.',
+            'items.*.*.harga.required'      => 'Harga harus diisi.',
+            'items.*.*.harga.integer'       => 'Harga harus berupa bilangan bulat.',
+            'items.*.*.harga.min'           => 'Harga minimal 0.',
         ];
 
         $validated = $request->validate($rules, $messages);
 
         $k = (float) ($validated['keuntungan'] ?? 3);
-        if ($k < 0) $k = 0.0;
+        if ($k < 0) {
+            $k = 0.0;
+        }
 
         $detailMap = $pesanan->detail->keyBy('id');
 
@@ -164,7 +168,6 @@ class PemesananController extends Controller
 
                     PemesananKebutuhan::create([
                         'pemesanan_id' => $pesanan->id,
-                        'pelanggan_id' => $pesanan->pelanggan_id,
                         'produk_id'    => $produkId,
                         'kategori'     => $row['kategori'],
                         'nama'         => $row['nama'],
@@ -185,7 +188,7 @@ class PemesananController extends Controller
 
             $totalBahan = $sumBesi + $sumLain;
             $grandTotal = (int) round($totalBahan * $k);
-            $bersih = (int) ($grandTotal - ($totalBahan + $sumJasa));
+            $bersih     = (int) ($grandTotal - ($totalBahan + $sumJasa));
 
             if ($pesanan->status === 'butuh_cek_ukuran') {
                 $pesanan->status = 'belum_bayar';

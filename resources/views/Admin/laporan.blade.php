@@ -94,6 +94,7 @@
               <th class="px-5 py-3 border-r">Bahan Besi</th>
               <th class="px-5 py-3 border-r">Bahan Lainnya</th>
               <th class="px-5 py-3 border-r">Jasa</th>
+              <th class="px-5 py-3 border-r">Keuntungan</th>
               <th class="px-5 py-3 border-r">Total Harga</th>
               <th class="px-5 py-3">Bersih</th>
             </tr>
@@ -110,9 +111,14 @@
                     elseif ($k->kategori === 'bahan_lainnya') $sumLain += $sub;
                     elseif ($k->kategori === 'jasa')          $sumJasa += $sub;
                 }
-                $totalHarga = isset($pesanan->total_harga) && is_numeric($pesanan->total_harga)
+                $kUsed = (isset($pesanan->keuntungan) && is_numeric($pesanan->keuntungan))
+                    ? (float) $pesanan->keuntungan
+                    : 3.0;
+                if ($kUsed < 1) $kUsed = 1.0;
+                $kDisp = rtrim(rtrim(number_format($kUsed, 2, ',', '.'), '0'), ',');
+                $totalHarga = (isset($pesanan->total_harga) && is_numeric($pesanan->total_harga))
                     ? (float) $pesanan->total_harga
-                    : ( ($sumBesi + $sumLain) * max(1, (int) ($pesanan->keuntungan ?? 3)) );
+                    : (($sumBesi + $sumLain) * $kUsed);
                 $bersih = $totalHarga - $sumBesi - $sumLain - $sumJasa;
               @endphp
               <tr class="hover:bg-gray-100 border-b border-gray-300">
@@ -127,12 +133,13 @@
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumBesi, 0, ',', '.') }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumLain, 0, ',', '.') }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumJasa, 0, ',', '.') }}</td>
+                <td class="px-5 py-3 border-r whitespace-nowrap">×{{ $kDisp }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($totalHarga, 0, ',', '.') }}</td>
                 <td class="px-5 py-3 whitespace-nowrap"><strong>Rp {{ number_format($bersih, 0, ',', '.') }}</strong></td>
               </tr>
             @empty
               <tr>
-                <td colspan="9" class="text-center py-10 text-gray-500 font-semibold">
+                <td colspan="10" class="text-center py-10 text-gray-500 font-semibold">
                   Tidak ada transaksi pada rentang tanggal ini.
                 </td>
               </tr>
@@ -152,6 +159,7 @@
                 <td class="px-5 py-3 border-t border-gray-300 whitespace-nowrap">
                   Rp {{ number_format($ringkasan['total_jasa'] ?? 0, 0, ',', '.') }}
                 </td>
+                <td class="px-5 py-3 border-t border-gray-300 whitespace-nowrap">—</td>
                 <td class="px-5 py-3 border-t border-gray-300 whitespace-nowrap">
                   Rp {{ number_format($ringkasan['gross'] ?? 0, 0, ',', '.') }}
                 </td>

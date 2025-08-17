@@ -19,7 +19,9 @@
     $waAdmin = $waAdmin ?? '6289644819899';
 @endphp
 
-<section class="py-10 bg-gray-200 min-h-screen" x-data="{
+<section
+  class="py-10 bg-gray-200 min-h-screen"
+  x-data="{
     showLoginPrompt: false,
     showSuccessModal: {{ session('success') ? 'true' : 'false' }},
     showImageModal: false,
@@ -36,7 +38,7 @@
         const res = await fetch('{{ route('keranjang.pesan') }}', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-          body: JSON.stringify({ items: [{{ $produk->id }}], kirim_email: true })
+          body: JSON.stringify({ items: [{{ $produk->id }}], kirim_email: true, buy_now: true })
         });
         const data = await res.json();
         if (data.success) {
@@ -71,6 +73,7 @@
             @endphp
             <img id="mainImage" src="{{ asset($path) }}" @click="imageModalUrl = $el.src; showImageModal = true" class="w-full h-full object-cover cursor-pointer transition">
           </div>
+
           @if ($produk->gambar->count() >= 1)
             <div class="mt-4 md:mt-auto">
               <div id="thumbnailContainer" class="flex {{ $produk->gambar->count() < 6 ? 'justify-center' : 'justify-start' }} gap-2 overflow-x-auto hide-scrollbar">
@@ -82,42 +85,69 @@
           @endif
         </div>
 
-        <div class="flex flex-col self-start p-6 border rounded-md shadow-md bg-white">
-          <div class="space-y-2 mb-2">
+        <div class="self-start border rounded-md shadow-md bg-white h-auto md:h-[400px] flex flex-col">
+          <div class="p-6 pb-2">
             <h1 class="text-xl font-bold">{{ $produk->nama }}</h1>
-            <p class="text-sm text-gray-700 leading-relaxed">{{ $produk->deskripsi }}</p>
           </div>
 
-          <div class="mt-2 flex w-full gap-2 mb-4">
+          <div class="px-6 flex-1 min-h-0 overflow-y-auto">
+            <p class="text-sm text-gray-700 leading-relaxed">
+              {{ $produk->deskripsi }}
+            </p>
+          </div>
+
+          <div class="p-6 pt-4 mt-auto">
+            <div class="flex w-full gap-2 mb-3">
+              @auth
+                <form action="{{ route('keranjang.tambah') }}" method="POST" class="w-1/2">
+                  @csrf
+                  <input type="hidden" name="produk_id" value="{{ $produk->id }}">
+                  <button type="submit" class="w-full py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                    Masukkan ke Keranjang
+                  </button>
+                </form>
+                <button type="button" @click="showConfirmModal = true" class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                  Pesan Sekarang
+                </button>
+              @else
+                <button type="button" @click="showLoginPrompt = true" class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                  Masukkan ke Keranjang
+                </button>
+                <button type="button" @click="showLoginPrompt = true" class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                  Pesan Sekarang
+                </button>
+              @endauth
+            </div>
+
             @auth
-              <form action="{{ route('keranjang.tambah') }}" method="POST" class="w-1/2">
-                @csrf
-                <input type="hidden" name="produk_id" value="{{ $produk->id }}">
-                <button type="submit" class="w-full py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">Masukkan ke Keranjang</button>
-              </form>
-              <button type="button" @click="showConfirmModal = true" class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">Pesan Sekarang</button>
+              <a
+                href="https://wa.me/{{ $waAdmin }}?text={{ urlencode('Halo, saya ingin konsultasi mengenai produk ' . $produk->nama) }}"
+                target="_blank"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 font-semibold text-black bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition"
+              >
+                <i class="fab fa-whatsapp"></i>
+                Konsultasi
+              </a>
             @else
-              <button type="button" @click="showLoginPrompt = true" class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">Masukkan ke Keranjang</button>
-              <button type="button" @click="showLoginPrompt = true" class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">Pesan Sekarang</button>
+              <button
+                type="button"
+                @click="showLoginPrompt = true"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 font-semibold text-black bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition"
+              >
+                <i class="fab fa-whatsapp"></i>
+                Konsultasi
+              </button>
             @endauth
           </div>
-
-          <a href="https://wa.me/{{ $waAdmin }}?text={{ urlencode('Halo, saya ingin konsultasi mengenai produk ' . $produk->nama) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 font-semibold text-black bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition">
-            <i class="fab fa-whatsapp"></i>
-            Konsultasi
-          </a>
         </div>
       </div>
     </div>
   </div>
 
-  <div x-show="showImageModal" @click.self="showImageModal = false" x-cloak
-     class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+  <div x-show="showImageModal" @click.self="showImageModal = false" x-cloak class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
     <div class="relative inline-block max-w-[90vw] max-h-[90vh]">
-      <img :src="imageModalUrl"
-          class="block w-auto h-auto max-w-[90vw] max-h-[90vh] object-contain rounded-md shadow-lg">
-      <button @click="showImageModal = false"
-              class="absolute top-2 right-2 text-white bg-black/60 rounded-full p-2 hover:bg-black/80 transition focus:outline-none focus:ring">
+      <img :src="imageModalUrl" class="block w-auto h-auto max-w-[90vw] max-h-[90vh] object-contain rounded-md shadow-lg">
+      <button @click="showImageModal = false" class="absolute top-2 right-2 text-white bg-black/60 rounded-full p-2 hover:bg-black/80 transition focus:outline-none focus:ring">
         <i class="fas fa-times"></i>
       </button>
     </div>

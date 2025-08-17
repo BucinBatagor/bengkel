@@ -110,46 +110,46 @@
       @endif
     </div>
 
-    <div class="mt-8 flex justify-center">
-      <ul class="inline-flex items-center text-sm">
-        <div class="inline-flex space-x-1 mr-2">
-          @if (method_exists($pemesanan, 'onFirstPage') && $pemesanan->onFirstPage())
-            <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
-            <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
-          @else
-            <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
-            <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
-          @endif
-        </div>
+    @if ($pemesanan->count() > 0)
+      <div class="mt-8 flex justify-center">
+        <ul class="inline-flex items-center text-sm">
+          <div class="inline-flex space-x-1 mr-2">
+            @if (method_exists($pemesanan, 'onFirstPage') && $pemesanan->onFirstPage())
+              <li><span class="px-3 py-2 border rounded text-gray-400">&laquo;</span></li>
+              <li><span class="px-3 py-2 border rounded text-gray-400">&lt;</span></li>
+            @else
+              <li><a href="{{ $pemesanan->appends(request()->except('page'))->url(1) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&laquo;</a></li>
+              <li><a href="{{ $pemesanan->appends(request()->except('page'))->previousPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&lt;</a></li>
+            @endif
+          </div>
 
-        <div class="inline-flex space-x-1 mx-2">
-          @php
-            $current = method_exists($pemesanan, 'currentPage') ? $pemesanan->currentPage() : 1;
-            $last    = method_exists($pemesanan, 'lastPage') ? $pemesanan->lastPage() : 1;
-            $start   = max(1, $current - 2);
-            $end     = min($last, $start + 4);
-            if ($end - $start < 4) {
-              $start = max(1, $end - 4);
-            }
-          @endphp
-          @for ($i = $start; $i <= $end; $i++)
-            <li>
-              <a href="{{ $pemesanan->appends(request()->except('page'))->url($i) }}" class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">{{ $i }}</a>
-            </li>
-          @endfor
-        </div>
+          <div class="inline-flex space-x-1 mx-2">
+            @php
+              $current = method_exists($pemesanan, 'currentPage') ? $pemesanan->currentPage() : 1;
+              $last    = method_exists($pemesanan, 'lastPage') ? $pemesanan->lastPage() : 1;
+              $start   = max(1, $current - 2);
+              $end     = min($last, $start + 4);
+              if ($end - $start < 4) { $start = max(1, $end - 4); }
+            @endphp
+            @for ($i = $start; $i <= $end; $i++)
+              <li>
+                <a href="{{ $pemesanan->appends(request()->except('page'))->url($i) }}" class="px-3 py-2 border rounded {{ $i == $current ? 'bg-black text-white' : 'hover:bg-gray-200' }}">{{ $i }}</a>
+              </li>
+            @endfor
+          </div>
 
-        <div class="inline-flex space-x-1 ml-2">
-          @if (method_exists($pemesanan, 'hasMorePages') && $pemesanan->hasMorePages())
-            <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
-            <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
-          @else
-            <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
-            <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
-          @endif
-        </div>
-      </ul>
-    </div>
+          <div class="inline-flex space-x-1 ml-2">
+            @if (method_exists($pemesanan, 'hasMorePages') && $pemesanan->hasMorePages())
+              <li><a href="{{ $pemesanan->appends(request()->except('page'))->nextPageUrl() }}" class="px-3 py-2 border rounded hover:bg-gray-200">&gt;</a></li>
+              <li><a href="{{ $pemesanan->appends(request()->except('page'))->url($pemesanan->lastPage()) }}" class="px-3 py-2 border rounded hover:bg-gray-200">&raquo;</a></li>
+            @else
+              <li><span class="px-3 py-2 border rounded text-gray-400">&gt;</span></li>
+              <li><span class="px-3 py-2 border rounded text-gray-400">&raquo;</span></li>
+            @endif
+          </div>
+        </ul>
+      </div>
+    @endif
   </div>
 
   <div x-show="popup.show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="popup.show = false">
@@ -170,7 +170,7 @@
 </section>
 
 @php
-  $isProd    = config('midtrans.is_production', false);
+  $isProd = config('midtrans.is_production', false);
   $clientKey = config('midtrans.client_key');
 @endphp
 <script src="https://app{{ $isProd ? '' : '.sandbox' }}.midtrans.com/snap/snap.js" data-client-key="{{ $clientKey }}"></script>

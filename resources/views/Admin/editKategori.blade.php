@@ -13,7 +13,23 @@
       </a>
     </div>
 
-    <h1 class="text-2xl font-bold mb-6">Edit Kategori</h1>
+    <h1 class="text-2xl font-bold mb-3">Edit Kategori</h1>
+
+    @if (session('info'))
+      <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+        {{ session('info') }}
+      </div>
+    @endif
+    @if (session('success'))
+      <div class="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+        {{ session('success') }}
+      </div>
+    @endif
+    @if (session('error'))
+      <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+        {{ session('error') }}
+      </div>
+    @endif
 
     <form action="{{ route('admin.kategori.update', $kategori->id) }}" method="POST" class="space-y-6" novalidate>
       @csrf

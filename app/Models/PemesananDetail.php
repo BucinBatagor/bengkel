@@ -13,13 +13,8 @@ class PemesananDetail extends Model
 
     protected $fillable = [
         'pemesanan_id',
-        'pelanggan_id',
         'produk_id',
         'nama_produk',
-        'panjang',
-        'lebar',
-        'tinggi',
-        'harga',
     ];
 
     public function pemesanan()
@@ -30,10 +25,5 @@ class PemesananDetail extends Model
     public function produk()
     {
         return $this->belongsTo(Produk::class, 'produk_id');
-    }
-
-    public function pelanggan()
-    {
-        return $this->belongsTo(Pelanggan::class, 'pelanggan_id');
     }
 }

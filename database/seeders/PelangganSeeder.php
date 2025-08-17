@@ -15,7 +15,7 @@ class PelangganSeeder extends Seeder
             'email' => 'nizar.banme@gmail.com',
             'phone' => '089519599386',
             'address' => 'Jalan Kom Yos Sudarso',
-            'password' => Hash::make('123456'),
+            'password' => Hash::make('pelanggan'),
         ]);
     }
 }

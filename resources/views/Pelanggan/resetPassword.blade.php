@@ -20,7 +20,8 @@
 
             <div class="relative">
                 <label for="password" class="block text-sm font-medium mb-1">Password Baru</label>
-                <input type="password" name="password" id="password" class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200">
+                <input type="password" name="password" id="password"
+                       class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200 @error('password') border-red-500 @enderror">
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="togglePassword">
                     <i class="fa-solid fa-eye-slash" id="eyeIcon1"></i>
                 </span>
@@ -31,7 +32,8 @@
 
             <div class="relative">
                 <label for="password_confirmation" class="block text-sm font-medium mb-1">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" id="password_confirmation" class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200">
+                <input type="password" name="password_confirmation" id="password_confirmation"
+                       class="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring focus:ring-blue-200 @error('password_confirmation') border-red-500 @enderror">
                 <span class="absolute right-3 top-[33px] cursor-pointer text-gray-500" id="toggleConfirmPassword">
                     <i class="fa-solid fa-eye-slash" id="eyeIcon2"></i>
                 </span>

@@ -4,30 +4,31 @@ namespace App\Http\Controllers\Pelanggan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pemesanan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Midtrans\Config;
 use Midtrans\Snap;
 use Midtrans\Transaction;
-use Carbon\Carbon;
 
 class PesananController extends Controller
 {
     public function __construct()
     {
-        Config::$serverKey = config('midtrans.server_key');
+        Config::$serverKey    = config('midtrans.server_key');
         Config::$isProduction = (bool) config('midtrans.is_production', false);
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
+        Config::$isSanitized  = true;
+        Config::$is3ds        = true;
     }
 
     public function index()
     {
         $pemesanan = Pemesanan::where('pelanggan_id', Auth::id())
-            ->where('status', '!=', 'keranjang')
+            ->whereHas('detail')
             ->with('detail.produk')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->orderByDesc('created_at')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('Pelanggan.pesanan', compact('pemesanan'));
     }
@@ -47,12 +48,12 @@ class PesananController extends Controller
 
         if ($pemesanan->snap_token) {
             try {
-                $st = Transaction::status($pemesanan->order_id);
+                $st        = Transaction::status($pemesanan->order_id);
                 $trxStatus = $this->mid($st, 'transaction_status');
-                $payType = $this->mid($st, 'payment_type');
+                $payType   = $this->mid($st, 'payment_type');
                 $trxTimeStr = $this->mid($st, 'transaction_time');
-                $trxTime = $trxTimeStr ? Carbon::parse($trxTimeStr) : null;
-                $ageSec = $trxTime ? $trxTime->diffInSeconds(now()) : null;
+                $trxTime    = $trxTimeStr ? Carbon::parse($trxTimeStr) : null;
+                $ageSec     = $trxTime ? $trxTime->diffInSeconds(now()) : null;
 
                 if ($trxStatus === 'pending' && $payType === 'qris') {
                     if ($ageSec !== null && $ageSec <= 60) {
@@ -82,44 +83,44 @@ class PesananController extends Controller
         $startTime = now();
 
         $pel = $pemesanan->pelanggan;
-        $firstName = $pel->name ?? 'Pelanggan';
-        $email = $pel->email ?? null;
-        $phone = $pel->telepon ?? $pel->phone ?? null;
+        $firstName   = $pel->name ?? 'Pelanggan';
+        $email       = $pel->email ?? null;
+        $phone       = $pel->telepon ?? $pel->phone ?? null;
         $addressLine = $pel->address ?? '-';
 
         $customer = [
             'first_name' => $firstName,
-            'email' => $email,
-            'phone' => $phone,
+            'email'      => $email,
+            'phone'      => $phone,
             'billing_address' => [
                 'first_name' => $firstName,
-                'phone' => $phone,
-                'address' => $addressLine,
+                'phone'      => $phone,
+                'address'    => $addressLine,
             ],
             'shipping_address' => [
                 'first_name' => $firstName,
-                'phone' => $phone,
-                'address' => $addressLine,
+                'phone'      => $phone,
+                'address'    => $addressLine,
             ],
         ];
 
         $params = [
             'transaction_details' => [
-                'order_id' => $pemesanan->order_id,
+                'order_id'     => $pemesanan->order_id,
                 'gross_amount' => $gross,
             ],
             'item_details' => [[
-                'id' => (string) $pemesanan->id,
-                'price' => $gross,
+                'id'       => (string) $pemesanan->id,
+                'price'    => $gross,
                 'quantity' => 1,
-                'name' => 'Pembayaran Pesanan',
+                'name'     => 'Pembayaran Pesanan',
             ]],
             'customer_details' => $customer,
             'credit_card' => ['secure' => true],
             'expiry' => [
                 'start_time' => $startTime->format('Y-m-d H:i:s O'),
-                'unit' => 'minutes',
-                'duration' => $durationMinutes,
+                'unit'       => 'minutes',
+                'duration'   => $durationMinutes,
             ],
         ];
 
@@ -166,7 +167,8 @@ class PesananController extends Controller
 
         $pesanan->update(['status' => 'pengembalian_dana']);
 
-        return redirect()->back()
+        return redirect()
+            ->back()
             ->with('success', 'Pengajuan refund berhasil dikirim. Silakan tunggu konfirmasi dari admin dan cek status pengembaliannya.');
     }
 }
