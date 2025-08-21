@@ -1,6 +1,6 @@
 @extends('Template.admin')
 
-@section('title', 'Edit Produk')
+@section('title', 'Edit katalog Produk')
 
 @section('content')
 <section class="w-full px-6 py-6">
@@ -13,7 +13,7 @@
       </a>
     </div>
 
-    <h1 class="text-2xl font-bold mb-3">EDIT PRODUK</h1>
+    <h1 class="text-2xl font-bold mb-3">EDIT KATALOG PRODUK</h1>
 
     @if (session('info'))
       <div class="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">

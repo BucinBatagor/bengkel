@@ -23,13 +23,47 @@
   class="py-10 bg-gray-200 min-h-screen"
   x-data="{
     showLoginPrompt: false,
-    showSuccessModal: {{ session('success') ? 'true' : 'false' }},
     showImageModal: false,
     imageModalUrl: '',
     showConfirmModal: false,
     showWaitingModal: false,
     isSubmitting: false,
     emailSentAdmin: false,
+
+    showAddedModal: false,
+    addToCartLoading: false,
+
+    async addToCart() {
+      if (this.addToCartLoading) return;
+      this.addToCartLoading = true;
+      try {
+        const res = await fetch('{{ route('keranjang.tambah') }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ produk_id: {{ $produk->id }} })
+        });
+
+        if (res.ok) {
+          this.showAddedModal = true;
+        } else {
+          let msg = 'Gagal menambahkan ke keranjang.';
+          try {
+            const data = await res.json();
+            msg = data.message || data.error || msg;
+          } catch (_) {}
+          alert(msg);
+        }
+      } catch (_) {
+        alert('Terjadi kesalahan jaringan.');
+      } finally {
+        this.addToCartLoading = false;
+      }
+    },
+
     async pesanSekarang() {
       if (this.isSubmitting) return;
       this.isSubmitting = true;
@@ -99,14 +133,21 @@
           <div class="p-6 pt-4 mt-auto">
             <div class="flex w-full gap-2 mb-3">
               @auth
-                <form action="{{ route('keranjang.tambah') }}" method="POST" class="w-1/2">
-                  @csrf
-                  <input type="hidden" name="produk_id" value="{{ $produk->id }}">
-                  <button type="submit" class="w-full py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
-                    Masukkan ke Keranjang
-                  </button>
-                </form>
-                <button type="button" @click="showConfirmModal = true" class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition">
+                <button
+                  type="button"
+                  @click="addToCart()"
+                  :disabled="addToCartLoading"
+                  class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition disabled:opacity-60"
+                >
+                  <span x-show="!addToCartLoading">Masukkan ke Keranjang</span>
+                  <span x-show="addToCartLoading">Menambahkan...</span>
+                </button>
+
+                <button
+                  type="button"
+                  @click="showConfirmModal = true"
+                  class="w-1/2 py-3 px-4 font-semibold text-white bg-black rounded-lg shadow hover:bg-gray-800 transition"
+                >
                   Pesan Sekarang
                 </button>
               @else
@@ -164,16 +205,6 @@
     </div>
   </div>
 
-  <div x-show="showSuccessModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
-      <p class="text-sm text-gray-600 mb-6">{{ session('success') }}</p>
-      <div class="flex justify-center gap-4">
-        <a href="{{ route('keranjang.index') }}" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Lihat Keranjang</a>
-        <button @click="showSuccessModal = false" class="px-4 py-2 border rounded hover:bg-gray-100">Lanjut Belanja</button>
-      </div>
-    </div>
-  </div>
-
   <div x-show="showConfirmModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
     <div class="bg-white rounded-xl p-6 shadow-lg max-w-md w-full text-center">
       <h2 class="text-xl font-semibold mb-2">Konfirmasi Pesanan</h2>
@@ -193,6 +224,23 @@
       <h2 class="text-xl font-semibold mb-3">Pesanan Diterima</h2>
       <p class="text-gray-700 mb-4">Terima kasih, pesanan Anda telah kami terima. Silakan tunggu 1×24 jam, pihak bengkel akan menghubungi Anda melalui WhatsApp.</p>
       <a href="{{ route('pesanan.index') }}" class="px-6 py-2 bg-black text-white rounded hover:bg-gray-800">Lihat Pesanan</a>
+    </div>
+  </div>
+
+  <div x-show="showAddedModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
+      <h2 class="text-lg font-bold mb-3">Berhasil Ditambahkan</h2>
+      <p class="text-sm text-gray-700 mb-6">
+        Produk sudah masuk ke keranjang Anda.
+      </p>
+      <div class="flex justify-center gap-4">
+        <a href="{{ route('keranjang.index') }}" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+          Lihat Keranjang
+        </a>
+        <button @click="showAddedModal = false" class="px-4 py-2 border rounded hover:bg-gray-100">
+          Lanjut Belanja
+        </button>
+      </div>
     </div>
   </div>
 </section>

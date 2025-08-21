@@ -16,24 +16,36 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'email.required'    => 'Email wajib diisi.',
+            'email.email'       => 'Format email tidak valid.',
             'password.required' => 'Password wajib diisi.',
         ]);
 
-        $remember = $request->filled('remember');
+        $remember = $request->boolean('remember');
 
         if (Auth::guard('pelanggan')->attempt($credentials, $remember)) {
+            $user = Auth::guard('pelanggan')->user();
+
+            if (! $user->hasVerifiedEmail()) {
+                Auth::guard('pelanggan')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Email Anda belum diverifikasi. Silahkan cek kotak masuk email anda',
+                ])->withInput($request->only('email'));
+            }
+
             $request->session()->regenerate();
-            return redirect()->intended($request->input('next', '/beranda'));
+            return redirect()->intended($request->input('next', route('beranda')));
         }
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
-        ])->withInput();
+        ])->withInput($request->only('email'));
     }
 
     public function logout(Request $request)

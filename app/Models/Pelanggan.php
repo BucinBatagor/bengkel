@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Pelanggan extends Authenticatable implements MustVerifyEmail
+class Pelanggan extends Authenticatable implements MustVerifyEmailContract
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, MustVerifyEmailTrait;
 
     protected $table = 'pelanggan';
 
@@ -30,4 +31,11 @@ class Pelanggan extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    protected $appends = ['status_verifikasi'];
+
+    public function getStatusVerifikasiAttribute(): string
+    {
+        return $this->hasVerifiedEmail() ? 'sudah verifikasi' : 'belum verifikasi';
+    }
 }

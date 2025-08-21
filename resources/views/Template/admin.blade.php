@@ -80,15 +80,31 @@
 
       <div>
         <nav class="text-sm space-y-1">
-          <div x-data="{ open: false }" class="relative">
-            <button @click="open = !open" class="block w-full px-6 py-3 flex items-center justify-between gap-3 text-white hover:bg-gray-800 rounded transition">
+          @php
+            $profilOpen = request()->routeIs('admin.profil') || request()->routeIs('admin.profil.password');
+          @endphp
+          <div
+            x-data="{ open: @js($profilOpen), lock: @js($profilOpen) }"
+            class="relative"
+          >
+            <button
+              @click="lock ? open = true : open = !open"
+              class="block w-full px-6 py-3 flex items-center justify-between gap-3 text-white hover:bg-gray-800 rounded transition"
+            >
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-user"></i>
                 Profil
               </div>
               <i :class="open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="w-4 h-4 transition-transform"></i>
             </button>
-            <div x-show="open" @click.away="open = false" x-transition class="absolute bottom-full left-0 mb-1 w-full bg-black text-white rounded shadow py-1">
+
+            <div
+              x-show="open"
+              x-cloak
+              @click.away="if(!lock) open = false"
+              x-transition
+              class="absolute bottom-full left-0 mb-1 w-full bg-black text-white rounded shadow py-1"
+            >
               <a href="{{ route('admin.profil') }}" class="block w-full px-6 py-2 hover:bg-gray-800 transition {{ request()->routeIs('admin.profil') ? 'bg-gray-600' : '' }}">
                 Ubah Profil
               </a>
@@ -97,6 +113,7 @@
               </a>
             </div>
           </div>
+
           <form method="POST" action="{{ route('admin.logout') }}">
             @csrf
             <button type="submit" class="block w-full px-6 py-3 flex items-center gap-3 text-red-400 hover:text-white hover:bg-red-800 rounded transition">

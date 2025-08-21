@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Http\Controllers\Controller;
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -43,7 +42,8 @@ class RegisterController extends Controller
                 ]
             );
 
-            $validated['phone'] = '0' . ltrim($validated['phone'], '0');
+            $digitsOnly = preg_replace('/\D/', '', $validated['phone']);
+            $validated['phone'] = '0' . ltrim($digitsOnly, '0');
 
             $user = Pelanggan::create([
                 'name'     => $validated['name'],
@@ -53,10 +53,11 @@ class RegisterController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            Auth::guard('pelanggan')->login($user);
             $user->sendEmailVerificationNotification();
 
-            return redirect()->route('verification.notice');
+            return redirect()
+                ->route('verification.notice')
+                ->with('success', 'Pendaftaran berhasil. Silakan cek email untuk verifikasi.');
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }

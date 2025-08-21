@@ -79,6 +79,10 @@ class PemesananDetailController extends Controller
 
         session(['cart' => $cart]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true], 200);
+        }
+
         return back()->with('success', 'Produk berhasil ditambahkan ke keranjang.');
     }
 
