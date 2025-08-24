@@ -84,7 +84,7 @@
 
               <div class="flex flex-col justify-between items-end">
                 <div class="space-y-2">
-                  <p class="text-gray-600 text-sm">Total Harga:</p>
+                  <p class="text-gray-600 text-sm">Total Harga</p>
                   <p class="text-xl font-bold">Rp {{ number_format($pesanan->total_harga,0,',','.') }}</p>
                 </div>
                 <div class="mt-4 w-full">
