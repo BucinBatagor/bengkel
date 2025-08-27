@@ -1,6 +1,6 @@
 @extends('Template.pelanggan')
 
-@section('title', 'Ubah Password')
+@section('title', 'Ganti Password')
 
 @section('content')
 <section class="py-10 min-h-screen bg-gray-200">
@@ -8,7 +8,7 @@
         <aside class="md:col-span-1">
             <div class="bg-white shadow rounded-xl p-4 space-y-2">
                 <a href="{{ route('profil.edit') }}" class="block px-3 py-2 rounded font-medium transition {{ request()->routeIs('profil.edit') ? 'bg-black text-white' : 'hover:bg-gray-100' }}">
-                    <i class="fas fa-user mr-2"></i> Profil Saya
+                    <i class="fas fa-user mr-2"></i> Profil
                 </a>
                 <a href="{{ route('profil.password') }}" class="block px-3 py-2 rounded font-medium transition {{ request()->routeIs('profil.password') ? 'bg-black text-white' : 'hover:bg-gray-100' }}">
                     <i class="fas fa-lock mr-2"></i> Ganti Password
@@ -62,7 +62,7 @@
                     </div>
 
                     <div class="pt-4">
-                        <button type="submit" class="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition">Ubah Password</button>
+                        <button type="submit" class="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition">Simpan</button>
                     </div>
                 </form>
             </div>

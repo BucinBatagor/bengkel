@@ -30,7 +30,7 @@
     @endif
 
     <div class="mb-4">
-      <h1 class="text-2xl font-bold tracking-wide">LAPORAN PENDAPATAN</h1>
+      <h1 class="text-2xl font-bold tracking-wide">Laporan Pendapatan</h1>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto] gap-3 md:gap-4 mb-6 items-end">
@@ -87,10 +87,11 @@
         <table class="min-w-full border border-gray-300 text-sm text-left">
           <thead class="bg-black text-white uppercase text-xs tracking-wider">
             <tr>
-              <th class="px-5 py-3 border-r">#</th>
+              <th class="px-5 py-3 border-r text-center">#</th>
               <th class="px-5 py-3 border-r">Tanggal</th>
               <th class="px-5 py-3 border-r">Pelanggan</th>
               <th class="px-5 py-3 border-r">Produk</th>
+              <th class="px-5 py-3 border-r text-right">Jumlah</th>
               <th class="px-5 py-3 border-r">Bahan Besi</th>
               <th class="px-5 py-3 border-r">Bahan Lainnya</th>
               <th class="px-5 py-3 border-r">Jasa</th>
@@ -116,20 +117,32 @@
                     : 3.0;
                 if ($kUsed < 1) $kUsed = 1.0;
                 $kDisp = rtrim(rtrim(number_format($kUsed, 2, ',', '.'), '0'), ',');
+
                 $totalHarga = (isset($pesanan->total_harga) && is_numeric($pesanan->total_harga))
                     ? (float) $pesanan->total_harga
                     : (($sumBesi + $sumLain) * $kUsed);
+
                 $bersih = $totalHarga - $sumBesi - $sumLain - $sumJasa;
               @endphp
               <tr class="hover:bg-gray-100 border-b border-gray-300">
-                <td class="px-5 py-3 border-r whitespace-nowrap">{{ $index + 1 }}</td>
+                <td class="px-5 py-3 border-r whitespace-nowrap text-center">{{ $index + 1 }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">{{ \Carbon\Carbon::parse($pesanan->created_at)->format('d/m/Y') }}</td>
                 <td class="px-5 py-3 border-r">{{ $pesanan->pelanggan->name ?? '-' }}</td>
+
+                {{-- Produk per baris --}}
                 <td class="px-5 py-3 border-r">
                   @foreach ($pesanan->detail as $detail)
                     <div class="mb-1">{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
                   @endforeach
                 </td>
+
+                {{-- Jumlah per-produk (tidak dijumlahkan) --}}
+                <td class="px-5 py-3 border-r text-right font-semibold">
+                  @foreach ($pesanan->detail as $detail)
+                    <div class="mb-1">{{ (int)($detail->jumlah ?? 1) }}</div>
+                  @endforeach
+                </td>
+
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumBesi, 0, ',', '.') }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumLain, 0, ',', '.') }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumJasa, 0, ',', '.') }}</td>
@@ -139,7 +152,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="10" class="text-center py-10 text-gray-500 font-semibold">
+                <td colspan="11" class="text-center py-10 text-gray-500 font-semibold">
                   Tidak ada transaksi pada rentang tanggal ini.
                 </td>
               </tr>
@@ -149,7 +162,13 @@
           @if($orders->count() > 0)
             <tfoot>
               <tr class="bg-gray-50 font-semibold">
-                <td class="px-5 py-3 border-t border-gray-300 text-right" colspan="4">Total</td>
+                {{-- Kosongkan 4 kolom pertama --}}
+                <td class="px-5 py-3 border-t border-gray-300" colspan="4"></td>
+
+                {{-- Tulisan "Total" diletakkan tepat di bawah kolom JUMLAH --}}
+                <td class="px-5 py-3 border-t border-gray-300 text-right">Total</td>
+
+                {{-- Angka total lain tetap di kolom masing-masing --}}
                 <td class="px-5 py-3 border-t border-gray-300 whitespace-nowrap">
                   Rp {{ number_format($ringkasan['total_bahan_besi'] ?? 0, 0, ',', '.') }}
                 </td>

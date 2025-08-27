@@ -1,12 +1,12 @@
 @extends('Template.admin')
 
-@section('title', 'Pesanan Masuk')
+@section('title', 'Kelola Pesanan')
 
 @section('content')
 <section class="flex flex-col items-center px-6 py-6" x-data="ordersRealtime()" x-init="start()">
   <div class="w-full max-w-screen-xl bg-white px-6 sm:px-8 py-6 rounded-lg shadow flex-1 min-h-[600px]">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">PESANAN MASUK</h1>
+      <h1 class="text-2xl font-bold">Kelola Pesanan</h1>
       <div class="text-xs text-gray-500" x-text="statusText"></div>
     </div>
 
@@ -100,10 +100,11 @@
       <table class="min-w-full border border-gray-300 text-sm text-left">
         <thead class="bg-black text-white uppercase text-xs tracking-wider">
           <tr>
-            <th class="px-5 py-3 border-r">#</th>
+            <th class="px-5 py-3 border-r text-center">#</th>
             <th class="px-5 py-3 border-r">Nama Pelanggan</th>
             <th class="px-5 py-3 border-r">Alamat</th>
             <th class="px-5 py-3 border-r">Produk</th>
+            <th class="px-5 py-3 border-r">Jumlah</th>
             <th class="px-5 py-3 border-r">Total Harga</th>
             <th class="px-5 py-3 border-r">Status</th>
             <th class="px-5 py-3">Aksi</th>
@@ -141,12 +142,6 @@
               } else {
                 $options = [];
               }
-
-              try {
-                $hasKeuntunganCol = \Illuminate\Support\Facades\Schema::hasColumn($pesanan->getTable(), 'keuntungan');
-              } catch (\Throwable $e) {
-                $hasKeuntunganCol = false;
-              }
             @endphp
 
             <tr
@@ -159,12 +154,21 @@
                 labelMap: @js($labels)
               })"
             >
-              <td class="px-5 py-3 border-r">{{ $pemesanan->firstItem() + $loop->index }}</td>
+              <td class="px-5 py-3 border-r text-center">{{ $pemesanan->firstItem() + $loop->index }}</td>
               <td class="px-5 py-3 border-r">{{ $pesanan->pelanggan->name ?? '-' }}</td>
               <td class="px-5 py-3 border-r">{{ $pesanan->pelanggan->address ?? '-' }}</td>
-              <td class="px-5 py-3 border-r">
+
+              <!-- Produk per-baris -->
+              <td class="px-5 py-3 border-r align-top">
                 @foreach ($pesanan->detail as $d)
                   <div class="mb-1">{{ $d->nama_produk ?? $d->produk->nama ?? '-' }}</div>
+                @endforeach
+              </td>
+
+              <!-- Jumlah per-baris -->
+              <td class="px-5 py-3 border-r whitespace-nowrap align-top">
+                @foreach ($pesanan->detail as $d)
+                  <div class="mb-1">{{ (int)($d->jumlah ?? 1) }}</div>
                 @endforeach
               </td>
 

@@ -12,9 +12,11 @@ class PemesananDetail extends Model
     protected $table = 'pemesanan_detail';
 
     protected $fillable = [
+        'pelanggan_id',
         'pemesanan_id',
         'produk_id',
         'nama_produk',
+        'jumlah',
     ];
 
     public function pemesanan()

@@ -42,7 +42,7 @@
                 @enderror
             </div>
 
-            <button type="submit" class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">Simpan Password Baru</button>
+            <button type="submit" class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">Simpan</button>
         </form>
     </div>
 </section>

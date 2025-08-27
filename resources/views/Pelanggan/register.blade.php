@@ -5,7 +5,7 @@
 @section('content')
 <section class="min-h-screen flex items-center justify-center px-4 py-12">
   <div class="bg-white p-6 sm:p-8 rounded-lg shadow-md w-full max-w-md">
-    <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Daftar Akun</h2>
+    <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Daftar</h2>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-4">
       @csrf

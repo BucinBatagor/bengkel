@@ -1,11 +1,11 @@
 @extends('Template.admin')
 
-@section('title', 'Ubah Password Admin')
+@section('title', 'Ubah Password')
 
 @section('content')
 <section class="flex flex-col items-center px-6 py-6 w-full">
-  <div class="bg-white rounded-lg shadow px-6 py-6 w-full">
-    <h1 class="text-2xl font-bold mb-6">Ubah Password Admin</h1>
+  <div class="w-full max-w-screen-xl mx-auto bg-white rounded-lg shadow px-6 sm:px-8 py-6">
+    <h1 class="text-2xl font-bold mb-6">Ubah Password</h1>
 
     @if(session('success'))
       <div class="mb-4 text-green-700 bg-green-100 p-3 rounded">
@@ -79,7 +79,7 @@
 
       <div class="pt-2">
         <button type="submit" class="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition">
-          Simpan Password Baru
+          Simpan
         </button>
       </div>
     </form>

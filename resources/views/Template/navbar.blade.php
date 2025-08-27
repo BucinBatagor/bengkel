@@ -1,124 +1,134 @@
 @php
-use Illuminate\Support\Facades\Auth;
-
-$cartData  = session('cart', []);
 $cartCount = 0;
-
-if ($cartData instanceof \Illuminate\Support\Collection) {
-    $cartCount = $cartData->sum(function ($item) {
-        if (is_array($item)) return max(1, (int)($item['qty'] ?? 1));
-        return 1;
-    });
-} elseif (is_array($cartData)) {
-    foreach ($cartData as $item) {
-        $cartCount += is_array($item) ? max(1, (int)($item['qty'] ?? 1)) : 1;
-    }
+if (auth()->check()) {
+    $cartCount = \App\Models\PemesananDetail::where('pelanggan_id', auth()->id())
+        ->whereNull('pemesanan_id')
+        ->count();
 }
 @endphp
 
-@vite('resources/js/app.js')
+<style>
+  .nav-link { position: relative; padding-bottom: .25rem; display:inline-flex; align-items:center; }
+  .nav-link:hover::after { content:""; position:absolute; left:-6px; right:-6px; bottom:-2px; height:3px; background:#9ca3af; border-radius:2px; }
+  .nav-link--active { font-weight:700; color:#111827; }
+  .nav-link--active::after { content:""; position:absolute; left:-6px; right:-6px; bottom:-2px; height:3px; background:#000; border-radius:2px; }
+</style>
 
-<nav class="bg-gray-100" x-data="{ mobileMenu: false }">
+<nav
+  class="bg-gray-100"
+  x-data="{ mobileMenu: false, closeOnDesktop(){ if (window.innerWidth >= 1024) this.mobileMenu = false } }"
+  @resize.window="closeOnDesktop()"
+  x-effect="document.body.classList.toggle('overflow-hidden', mobileMenu)"
+>
   <div class="flex max-w-screen-xl mx-auto py-4 px-4 items-center justify-between">
     <div class="flex items-center space-x-4">
-      <a href="/beranda">
+      @php $homeLink = auth()->check() ? url('/katalog') : url('/beranda'); @endphp
+      <a href="{{ $homeLink }}" aria-label="Home">
         <img src="/assets/LogoBengkel.png" alt="Logo" class="h-10 w-10 rounded-full object-cover">
       </a>
     </div>
 
     <div class="lg:hidden">
-      <button @click="mobileMenu = !mobileMenu" class="focus:outline-none">
-        <svg x-show="!mobileMenu" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-        <svg x-show="mobileMenu" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+      <button @click="mobileMenu = !mobileMenu" class="focus:outline-none" aria-label="Toggle menu">
+        <svg x-show="!mobileMenu" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <svg x-show="mobileMenu" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
     <div class="hidden lg:flex justify-between items-center w-full ml-10">
       <ul class="flex items-center space-x-4 text-sm font-semibold text-black">
-        <li>
-          <a href="/beranda" class="text-base pb-1 {{ request()->is('beranda') ? 'border-b-3 border-black font-bold' : 'hover:border-b-3 hover:border-gray-400' }}">Beranda</a>
-        </li>
+        @if (!auth()->check())
+          <li>
+            <a href="/beranda" class="nav-link text-base {{ request()->is('beranda') ? 'nav-link--active' : '' }}">
+              Beranda
+            </a>
+          </li>
+          <li class="border h-5 border-black"></li>
+        @endif
+
+        {{-- Divider kiri katalog --}}
         <li class="border h-5 border-black"></li>
+
         <li>
-          <a href="/katalog" class="text-base pb-1 {{ request()->is('katalog') || request()->is('produk/*') ? 'border-b-3 border-black font-bold' : 'hover:border-b-3 hover:border-gray-400' }}">Katalog</a>
+          <a href="/katalog" class="nav-link text-base {{ request()->is('katalog') || request()->is('produk/*') ? 'nav-link--active' : '' }}">
+            Katalog
+          </a>
         </li>
       </ul>
 
       <div class="flex items-center space-x-4 text-sm font-semibold">
-        @if (Auth::check())
-          <a href="{{ route('keranjang.index') }}" class="relative">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700 hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14l-1 10H6L5 8zM9 8V6a3 3 0 016 0v2"/>
-            </svg>
-            @if ($cartCount > 0)
-              <span id="cartBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">{{ $cartCount }}</span>
-            @endif
+        @if (auth()->check())
+          <a href="{{ route('keranjang.index') }}" class="relative" aria-label="Keranjang">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700 hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14l-1 10H6L5 8zM9 8V6a3 3 0 016 0v2"/></svg>
+            <span id="cartBadge"
+              x-show="$store.cart && $store.cart.count > 0"
+              x-text="$store.cart ? $store.cart.count : 0"
+              class="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"></span>
           </a>
 
           <div x-data="{ open: false }" class="relative">
-            <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
+            <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none" aria-haspopup="menu" :aria-expanded="open">
               <img src="/assets/user.png" alt="Profil" class="h-10 w-10 rounded-full object-cover border border-gray-300 hover:border-black transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div x-show="open" x-cloak @click.away="open = false" class="absolute right-0 mt-2 min-w-[160px] bg-white shadow-lg border rounded-md py-2 z-50 space-y-1">
               <a href="/profil" class="block px-4 py-2 hover:bg-gray-100 text-sm font-medium rounded-md">Profil</a>
-              <a href="/pesanan" class="block px-4 py-2 hover:bg-gray-100 text-sm font-medium rounded-md">Status Pesanan</a>
+              <a href="/pesanan" class="block px-4 py-2 hover:bg-gray-100 text-sm font-medium rounded-md">Riwayat Pesanan</a>
               <hr class="my-1 border-black">
-              <form method="POST" action="/logout">
-                @csrf
-                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 font-medium rounded-md">Logout</button>
-              </form>
+              <form method="POST" action="/logout">@csrf<button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 font-medium rounded-md">Logout</button></form>
             </div>
           </div>
         @else
-          <a href="{{ route('login', ['next' => request()->path()]) }}" class="text-base pb-1 {{ request()->is('login') ? 'border-b-3 border-black font-bold' : 'hover:border-b-3 hover:border-gray-400' }}">Login</a>
-          <a href="{{ route('register') }}" class="text-base pb-1 border border-black px-3 py-1 rounded {{ request()->is('register') ? 'border-b-3 border-black font-bold' : 'hover:bg-gray-200' }}">Daftar</a>
+          <a href="{{ route('login') }}" class="nav-link text-base {{ request()->is('login') ? 'nav-link--active' : '' }}">Login</a>
+          <a href="{{ route('register') }}" class="text-base border border-black px-3 py-1 rounded bg-white">Daftar</a>
         @endif
       </div>
     </div>
   </div>
 
-  <div x-show="mobileMenu" x-cloak class="fixed right-0 top-0 h-full w-72 max-w-full bg-gray-100 z-50 shadow-lg overflow-y-auto p-6 lg:hidden space-y-6" @keydown.window.escape="mobileMenu = false">
-    <div class="flex justify-end">
-      <button @click="mobileMenu = false" class="text-gray-600 hover:text-black">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
+  <div class="lg:hidden">
+    <div x-show="mobileMenu" x-cloak class="fixed inset-0 bg-black/30 z-40" @click="mobileMenu = false" aria-hidden="true"></div>
+    <div x-show="mobileMenu" x-cloak class="fixed right-0 top-0 h-full w-72 max-w-full bg-gray-100 z-50 shadow-lg overflow-y-auto p-4" @keydown.window.escape="mobileMenu = false" @click.stop role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="flex justify-end mb-2">
+        <button @click="mobileMenu = false" class="text-gray-600" aria-label="Tutup menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
 
-    <div class="space-y-3 text-sm">
-      <a href="/beranda" class="block px-4 py-2 rounded font-medium {{ request()->is('beranda') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Beranda</a>
-      <a href="/katalog" class="block px-4 py-2 rounded font-medium {{ request()->is('katalog') || request()->is('produk/*') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Katalog</a>
-    </div>
+      <div class="space-y-2 text-sm">
+        @if (!auth()->check()) 
+          <a href="/beranda" @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Beranda</a> 
+        @endif
+        <a href="/katalog" @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Katalog</a>
+      </div>
 
-    <hr class="border-black my-3">
-
-    <div class="space-y-3 text-sm">
-      @if (Auth::check())
-        <a href="{{ route('keranjang.index') }}" class="flex items-center justify-between px-4 py-2 rounded font-medium {{ request()->is('keranjang') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">
-          <span>Keranjang</span>
-          @if ($cartCount > 0)
-            <span class="bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">{{ $cartCount }}</span>
-          @endif
-        </a>
-        <a href="/profil" class="block px-4 py-2 rounded font-medium {{ request()->is('profil') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Profil</a>
-        <a href="/pesanan" class="block px-4 py-2 rounded font-medium {{ request()->is('pesanan') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Status Pesanan</a>
-        <hr class="border-black my-3">
-        <form method="POST" action="/logout">
-          @csrf
-          <button type="submit" class="w-full text-left px-4 py-2 rounded text-red-600 hover:bg-red-100">Logout</button>
-        </form>
-      @else
-        <a href="{{ route('login', ['next' => request()->path()]) }}" class="block px-4 py-2 rounded font-medium {{ request()->is('login') ? 'text-black bg-gray-200 ring-1 ring-black/10' : 'text-black hover:bg-gray-200' }}">Login</a>
-        <a href="{{ route('register') }}" class="block px-4 py-2 rounded font-medium text-black hover:bg-gray-200 transition {{ request()->is('register') ? 'bg-gray-200 ring-1 ring-black/10' : '' }}">Daftar</a>
-      @endif
+      <div class="space-y-2 text-sm mt-3">
+        @if (auth()->check())
+          <a href="{{ route('keranjang.index') }}" @click="mobileMenu=false" class="flex items-center justify-between w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">
+            <span>Keranjang</span>
+            <span id="cartBadgeMobile"
+              x-show="$store.cart && $store.cart.count > 0"
+              x-text="$store.cart ? $store.cart.count : 0"
+              class="bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"></span>
+          </a>
+          <a href="/profil"  @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Profil</a>
+          <a href="/pesanan" @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Riwayat Pesanan</a>
+          <form method="POST" action="/logout" class="mt-1">@csrf<button type="submit" class="block w-full text-left px-3 py-2 border border-black rounded bg-white font-medium text-red-600">Logout</button></form>
+        @else
+          <a href="{{ route('login') }}" @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Login</a>
+          <a href="{{ route('register') }}" @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Daftar</a>
+        @endif
+      </div>
     </div>
   </div>
 </nav>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    const initialCount = {{ (int) $cartCount }};
+    try {
+      if (Alpine.store('cart')) Alpine.store('cart').count = initialCount;
+      else Alpine.store('cart', { count: initialCount });
+    } catch (e) {}
+  });
+</script>

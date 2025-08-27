@@ -17,6 +17,7 @@ class AuthController extends Controller
 
     public function showLoginForm(Request $request)
     {
+        // Simpan intended jika ada ?next= dan aman
         if ($request->filled('next')) {
             $next = $request->query('next');
             if ($this->isSafeRedirect($next)) {
@@ -24,8 +25,9 @@ class AuthController extends Controller
             }
         }
 
+        // Jika sudah login admin, arahkan ke dashboard
         if (Auth::guard('admin')->check()) {
-            return redirect()->intended(route('admin.pemesanan.index'));
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         return view('Admin.adminLogin');
@@ -34,17 +36,18 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ], [
-            'email.required' => 'Kolom email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'email.required'    => 'Kolom email wajib diisi.',
+            'email.email'       => 'Format email tidak valid.',
             'password.required' => 'Kolom password wajib diisi.',
         ]);
 
         if (Auth::guard('admin')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended(route('admin.pemesanan.index'));
+            // Setelah login sukses, default ke dashboard
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         return back()->withErrors([
@@ -63,22 +66,12 @@ class AuthController extends Controller
 
     private function isSafeRedirect(?string $url): bool
     {
-        if (!$url) {
-            return false;
-        }
-
-        if (Str::startsWith($url, '//')) {
-            return false;
-        }
-
-        if (Str::startsWith($url, '/')) {
-            return true;
-        }
+        if (!$url) return false;
+        if (Str::startsWith($url, '//')) return false;
+        if (Str::startsWith($url, '/')) return true;
 
         $appBase = url('/');
-        if (Str::startsWith($url, $appBase)) {
-            return true;
-        }
+        if (Str::startsWith($url, $appBase)) return true;
 
         return false;
     }

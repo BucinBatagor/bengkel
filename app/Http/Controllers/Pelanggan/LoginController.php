@@ -5,12 +5,28 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
-        return view('pelanggan.login');
+        $baseUrl  = url('/');
+        $prev     = url()->previous();
+        $current  = url()->current();
+
+        if ($prev && Str::startsWith($prev, $baseUrl) && $prev !== $current) {
+            $path = parse_url($prev, PHP_URL_PATH) ?? '/';
+            if (Str::startsWith($path, ['/produk', '/katalog'])) {
+                session(['login_intended' => $prev]);
+            }
+        }
+
+        if (!session()->has('login_intended')) {
+            session(['login_intended' => session('last_catalog_url', route('katalog'))]);
+        }
+
+        return view('Pelanggan.login');
     }
 
     public function login(Request $request)
@@ -29,7 +45,7 @@ class LoginController extends Controller
         if (Auth::guard('pelanggan')->attempt($credentials, $remember)) {
             $user = Auth::guard('pelanggan')->user();
 
-            if (! $user->hasVerifiedEmail()) {
+            if (!$user->hasVerifiedEmail()) {
                 Auth::guard('pelanggan')->logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
@@ -40,7 +56,20 @@ class LoginController extends Controller
             }
 
             $request->session()->regenerate();
-            return redirect()->intended($request->input('next', route('beranda')));
+
+            $target = session()->pull('login_intended', route('katalog'));
+
+            $baseUrl = url('/');
+            if (!Str::startsWith($target, $baseUrl)) {
+                $target = route('katalog');
+            } else {
+                $path = parse_url($target, PHP_URL_PATH) ?? '/';
+                if (Str::startsWith($path, ['/login', '/register', '/password'])) {
+                    $target = route('katalog');
+                }
+            }
+
+            return redirect()->to($target);
         }
 
         return back()->withErrors([

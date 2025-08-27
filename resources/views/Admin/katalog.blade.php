@@ -5,7 +5,7 @@
 @section('content')
 <section class="flex flex-col items-center px-6 py-6 w-full" x-data="{ show: false, deleteUrl: '', detailShow: false, detail: { id: null, nama: '', kategori: '', deskripsi: '', gambar: [] } }">
     <div class="bg-white rounded-lg shadow px-6 py-6 w-full max-w-screen-xl mx-auto min-h-[600px]">
-        <h1 class="text-2xl font-bold mb-6">KELOLA KATALOG PRODUK</h1>
+        <h1 class="text-2xl font-bold mb-6">Kelola Katalog</h1>
 
         <div class="block md:hidden mb-6 space-y-4">
             <form method="GET" action="{{ route('admin.katalog.index') }}" class="flex w-full">
@@ -14,7 +14,7 @@
                         type="text"
                         name="search"
                         value="{{ request('search') }}"
-                        placeholder="Cari nama produk..."
+                        placeholder="Cari nama katalog..."
                         class="border border-gray-300 rounded-l px-3 py-2 w-full focus:outline-none focus:ring focus:border-black pr-10"
                     >
                     @if(request('search'))
@@ -36,14 +36,14 @@
             <a
                 href="{{ route('admin.katalog.create') }}"
                 class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 shadow w-full text-center"
-            >+ Tambah Produk</a>
+            >+ Tambah Katalog</a>
         </div>
 
         <div class="hidden md:flex md:items-center md:justify-between mb-6">
             <a
                 href="{{ route('admin.katalog.create') }}"
                 class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 shadow"
-            >+ Tambah Produk</a>
+            >+ Tambah Katalog</a>
 
             <form method="GET" action="{{ route('admin.katalog.index') }}" class="flex">
                 <div class="relative flex w-[250px]">
@@ -51,7 +51,7 @@
                         type="text"
                         name="search"
                         value="{{ request('search') }}"
-                        placeholder="Cari nama produk..."
+                        placeholder="Cari nama katalog..."
                         class="border border-gray-300 rounded-l px-3 py-2 w-full focus:outline-none focus:ring focus:border-black pr-10"
                     >
                     @if(request('search'))
@@ -75,7 +75,7 @@
             <table class="min-w-full border border-gray-300 text-sm text-left">
                 <thead class="bg-black text-white uppercase text-xs tracking-wider">
                     <tr>
-                        <th class="px-5 py-3 border-r border-gray-400">#</th>
+                        <th class="px-5 py-3 border-r border-gray-400 text-center">#</th>
                         <th class="px-5 py-3 border-r border-gray-400">Gambar</th>
                         <th class="px-5 py-3 border-r border-gray-400">
                             @php $nextOrder = request('sort') === 'nama' && request('order') === 'asc' ? 'desc' : 'asc'; @endphp
@@ -110,7 +110,7 @@
                             $images = $produk->gambar->map(fn($g) => asset('storage/' . $g->gambar))->values();
                         @endphp
                         <tr class="hover:bg-gray-100 border-b border-gray-300">
-                            <td class="px-5 py-3 border-r border-gray-200">
+                            <td class="px-5 py-3 border-r border-gray-200 text-center">
                                 {{ $produks->firstItem() + $loop->index }}
                             </td>
                             <td class="px-5 py-3 border-r border-gray-200">
@@ -160,7 +160,7 @@
         <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
                 <h2 class="text-lg font-bold mb-4">Konfirmasi Penghapusan</h2>
-                <p class="text-sm text-gray-600 mb-6">Apakah Anda yakin ingin menghapus produk ini?</p>
+                <p class="text-sm text-gray-600 mb-6">Apakah Anda yakin ingin menghapus katalog ini?</p>
                 <form :action="deleteUrl" method="POST" class="flex justify-center gap-4">
                     @csrf
                     @method('DELETE')
@@ -176,7 +176,7 @@
             <div class="relative z-10 flex min-h-full items-start md:items-center justify-center p-4 md:p-6">
                 <div class="bg-white w-full max-w-4xl rounded-lg shadow-lg max-h-[90vh] overflow-y-auto overflow-x-hidden p-5 md:p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-xl font-bold">Detail Produk</h2>
+                        <h2 class="text-xl font-bold">Detail Katalog</h2>
                         <button class="text-gray-500 hover:text-black text-xl leading-none" @click="detailShow=false">×</button>
                     </div>
 

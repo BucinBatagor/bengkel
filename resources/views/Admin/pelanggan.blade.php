@@ -5,7 +5,7 @@
 @section('content')
 <section class="flex flex-col items-center px-6 py-6 w-full flex-1">
     <div class="w-full max-w-screen-xl bg-white px-6 sm:px-8 py-6 rounded-lg shadow min-h-[600px] overflow-y-auto">
-        <h1 class="text-2xl font-bold mb-6">DATA PELANGGAN</h1>
+        <h1 class="text-2xl font-bold mb-6">Data Pelanggan</h1>
 
         <form method="GET" action="{{ route('admin.pelanggan.index') }}"
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 w-full" novalidate>
@@ -42,7 +42,7 @@
             <table class="min-w-full border border-gray-300 text-sm text-left">
                 <thead class="bg-black text-white uppercase text-xs tracking-wider">
                     <tr>
-                        <th class="px-5 py-3 border-r border-gray-400">#</th>
+                        <th class="px-5 py-3 border-r border-gray-400 text-center">#</th>
                         @foreach($columns as $key => $label)
                             <th class="px-5 py-3 border-r border-gray-400">
                                 <a href="{{ route('admin.pelanggan.index', array_merge(request()->all(), ['sort' => $key, 'order' => ($currentSort === $key && $currentOrder === 'asc') ? 'desc' : 'asc'])) }}"
@@ -59,7 +59,7 @@
                 <tbody class="text-gray-700">
                     @forelse($users as $i => $user)
                         <tr class="hover:bg-gray-100 border-b border-gray-300">
-                            <td class="px-5 py-3 border-r border-gray-200">{{ $users->firstItem() + $i }}</td>
+                            <td class="px-5 py-3 border-r border-gray-200 text-center">{{ $users->firstItem() + $i }}</td>
                             <td class="px-5 py-3 border-r border-gray-200">{{ $user->name }}</td>
                             <td class="px-5 py-3 border-r border-gray-200">{{ $user->email }}</td>
                             <td class="px-5 py-3 border-r border-gray-200">{{ $user->phone ?? '-' }}</td>

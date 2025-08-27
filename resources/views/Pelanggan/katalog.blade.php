@@ -3,10 +3,15 @@
 @section('title', 'Katalog')
 
 @section('content')
-<section class="py-10 px-5 bg-gray-200 min-h-screen">
-    <div class="max-w-screen-xl mx-auto space-y-6">
-        <div class="bg-white rounded-lg shadow p-6 min-h-[550px]">
-            <form method="GET" id="filterForm" class="flex flex-wrap items-center justify-between gap-4 mb-8">
+@php
+    session(['last_catalog_url' => request()->fullUrl()]);
+@endphp
+
+<section class="py-10 bg-gray-200 min-h-screen">
+    <div class="max-w-screen-xl mx-auto px-4 space-y-6">
+
+        <div class="bg-white rounded-lg shadow p-6 h-[550px] flex flex-col">
+            <form method="GET" id="filterForm" class="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div class="relative">
                     <select name="kategori" onchange="document.getElementById('filterForm').submit();" class="appearance-none bg-black text-white font-semibold py-2 px-4 pr-8 rounded leading-tight focus:outline-none h-[42px]">
                         <option value="Semua" {{ request('kategori') === 'Semua' ? 'selected' : '' }}>Semua</option>
@@ -36,22 +41,24 @@
                 </div>
             </form>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                @forelse ($produks as $produk)
-                    <a href="{{ route('produk.show', $produk->id) }}?back={{ urlencode(request()->fullUrl()) }}" class="block border rounded-lg overflow-hidden shadow hover:shadow-lg transition bg-white">
-                        <img src="{{ $produk->gambar->first() ? asset('storage/' . $produk->gambar->first()->gambar) : asset('assets/default.jpg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/default.jpg') }}';" alt="{{ $produk->nama }}" class="w-full h-48 object-cover">
-                        <div class="p-4 flex flex-col justify-between h-[100px]">
-                            <div class="space-y-1">
-                                <h3 class="text-base font-semibold text-gray-800 truncate">{{ $produk->nama }}</h3>
-                                <p class="text-sm text-gray-500 truncate">{{ $produk->kategori }}</p>
+            <div class="flex-1 min-h-0 overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    @forelse ($produks as $produk)
+                        <a href="{{ route('produk.show', $produk->id) }}?back={{ urlencode(request()->fullUrl()) }}" class="block border rounded-lg overflow-hidden shadow hover:shadow-lg transition bg-white">
+                            <img src="{{ $produk->gambar->first() ? asset('storage/' . $produk->gambar->first()->gambar) : asset('assets/default.jpg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/default.jpg') }}';" alt="{{ $produk->nama }}" class="w-full h-48 object-cover">
+                            <div class="p-4 flex flex-col justify-between h-[100px]">
+                                <div class="space-y-1">
+                                    <h3 class="text-base font-semibold text-gray-800 truncate">{{ $produk->nama }}</h3>
+                                    <p class="text-sm text-gray-500 truncate">{{ $produk->kategori }}</p>
+                                </div>
                             </div>
+                        </a>
+                    @empty
+                        <div class="col-span-full flex items-center justify-center text-gray-500 min-h-[300px]">
+                            <p class="text-center">Tidak ada produk ditemukan.</p>
                         </div>
-                    </a>
-                @empty
-                    <div class="col-span-full flex items-center justify-center text-gray-500 min-h-[400px]">
-                        <p class="text-center">Tidak ada produk ditemukan.</p>
-                    </div>
-                @endforelse
+                    @endforelse
+                </div>
             </div>
         </div>
 
@@ -104,5 +111,32 @@ function clearSearch() {
     document.getElementById('searchInput').value = '';
     document.getElementById('filterForm').submit();
 }
+
+(function () {
+  const appBase = "{{ url('/') }}";
+  const ref = document.referrer || "";
+  if (ref.startsWith(appBase)) {
+    try {
+      const refUrl = new URL(ref);
+      const fromBeranda = refUrl.pathname === "/beranda" || refUrl.pathname === "/";
+      if (fromBeranda) {
+        history.pushState({}, "", location.href);
+      }
+    } catch (_) {}
+  }
+
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+  const key = "katalog:scroll:" + (location.search || "");
+  window.addEventListener("pageshow", function () {
+    const y = sessionStorage.getItem(key);
+    if (y !== null) window.scrollTo(0, parseInt(y, 10) || 0);
+  });
+  window.addEventListener("pagehide", function () {
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+    sessionStorage.setItem(key, String(y));
+  });
+})();
 </script>
 @endsection

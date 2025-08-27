@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Verified;
 use App\Models\Pelanggan;
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\KatalogController;
 use App\Http\Controllers\Admin\KategoriController;
 use App\Http\Controllers\Admin\PelangganController as AdminPelangganController;
@@ -51,6 +52,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/reset-password-sukses-admin', fn () => view('Admin.resetPasswordBerhasil'))->name('password.reset.success');
 
     Route::middleware(AuthenticateAdmin::class)->group(function () {
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('katalog', KatalogController::class)
             ->except(['show'])
             ->names([
@@ -152,8 +154,9 @@ Route::middleware('auth:pelanggan')->group(function () {
 
     Route::get('keranjang', [PemesananDetailController::class, 'index'])->name('keranjang.index');
     Route::post('keranjang/tambah', [PemesananDetailController::class, 'tambah'])->name('keranjang.tambah');
+    Route::patch('keranjang/{id}/jumlah', [PemesananDetailController::class, 'ubahJumlah'])->name('keranjang.ubah_jumlah');
     Route::delete('keranjang/hapus/{id}', [PemesananDetailController::class, 'hapus'])->name('keranjang.hapus');
-    Route::post('keranjang/pesan', [PemesananDetailController::class, 'checkout'])->name('keranjang.pesan');
+    Route::post('keranjang/pesan', [PemesananDetailController::class, 'pesan'])->name('keranjang.pesan');
 
     Route::get('pesanan', [PesananController::class, 'index'])->name('pesanan.index');
     Route::post('pesanan/{id}/bayar', [PesananController::class, 'bayar'])->name('pesanan.bayar');

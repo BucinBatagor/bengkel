@@ -63,7 +63,7 @@
       </div>
 
       <button type="submit" class="w-full bg-black text-white py-2 rounded hover:bg-gray-700 transition">
-        Simpan Password Baru
+        Simpan
       </button>
     </form>
   </div>

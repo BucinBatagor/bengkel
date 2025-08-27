@@ -32,7 +32,8 @@
     .col-date { white-space: nowrap; }
     .col-cust { }
     .col-prod { }
-    .col-num, .col-num-s, .col-keu { text-align: right; white-space: nowrap; }
+    .col-qty  { text-align: left; white-space: nowrap; }
+    .col-num, .col-num-s, .col-keu { text-align: left; white-space: nowrap; }
     .wrap-anywhere { word-break: break-word; overflow-wrap: anywhere; }
 
     .summary { margin: 10px 0 14px; }
@@ -45,9 +46,9 @@
     .subtable th { background:#f7f7f7; white-space: nowrap; }
     .subtable .col-cat        { width:auto; }
     .subtable .col-name       { width:50%; }
-    .subtable .col-kuantitas  { width:auto; text-align:right; white-space: nowrap; }
-    .subtable .col-price      { width:auto; text-align:right; white-space: nowrap; }
-    .subtable .col-sub        { width:auto; text-align:right; white-space: nowrap; }
+    .subtable .col-kuantitas  { width:auto; text-align:left; white-space: nowrap; }
+    .subtable .col-price      { width:auto; text-align:left; white-space: nowrap; }
+    .subtable .col-sub        { width:auto; text-align:left; white-space: nowrap; }
 
     .calcbox { margin-top:6px; border:1px solid #bbb; padding:6px 8px; font-size:11px; background:#fcfcfc; }
     .calcbox .line { margin:2px 0; }
@@ -160,6 +161,7 @@
               <th class="col-date">Tanggal</th>
               <th class="col-cust">Pelanggan</th>
               <th class="col-prod">Produk</th>
+              <th class="col-qty">Jumlah</th>
               <th class="col-num">Bahan Besi</th>
               <th class="col-num">Bahan Lainnya</th>
               <th class="col-num-s">Jasa</th>
@@ -193,11 +195,21 @@
                 <td class="col-idx">{{ $index + 1 }}</td>
                 <td class="col-date">{{ \Carbon\Carbon::parse($pesanan->created_at)->locale('id')->translatedFormat('d/m/Y') }}</td>
                 <td class="col-cust">{{ $pesanan->pelanggan->name ?? '-' }}</td>
+
+                {{-- Produk --}}
                 <td class="col-prod wrap-anywhere">
                   @foreach ($pesanan->detail as $detail)
                     <div>{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
                   @endforeach
                 </td>
+
+                {{-- Jumlah per-produk (tidak dijumlahkan) --}}
+                <td class="col-qty">
+                  @foreach ($pesanan->detail as $detail)
+                    <div>{{ (int)($detail->jumlah ?? 1) }}</div>
+                  @endforeach
+                </td>
+
                 <td class="col-num">Rp {{ number_format($sumBesi, 0, ',', '.') }}</td>
                 <td class="col-num">Rp {{ number_format($sumLain, 0, ',', '.') }}</td>
                 <td class="col-num-s">Rp {{ number_format($sumJasa, 0, ',', '.') }}</td>
@@ -209,7 +221,7 @@
               @if($pesanan->kebutuhan->count())
                 <tr>
                   <td></td>
-                  <td colspan="9" class="small">
+                  <td colspan="10" class="small">
                     <table class="subtable">
                       <thead>
                         <tr>
@@ -273,7 +285,9 @@
           </tbody>
           <tfoot>
             <tr>
+              {{-- Kolom label + kolom Jumlah terpisah (Jumlah tidak dijumlahkan) --}}
               <td colspan="4" class="col-num"><strong>Total Bulan Ini</strong></td>
+              <td class="col-qty">—</td>
               <td class="col-num"><strong>Rp {{ number_format($totalBesiBulan, 0, ',', '.') }}</strong></td>
               <td class="col-num"><strong>Rp {{ number_format($totalLainBulan, 0, ',', '.') }}</strong></td>
               <td class="col-num-s"><strong>Rp {{ number_format($totalJasaBulan, 0, ',', '.') }}</strong></td>
@@ -288,8 +302,5 @@
     @php $firstYear = false; @endphp
   @endforeach
 
-  <div class="footer">
-    Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y, H:i') }}
-  </div>
 </body>
 </html>

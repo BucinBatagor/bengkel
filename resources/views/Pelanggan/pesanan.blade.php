@@ -1,6 +1,7 @@
+{{-- resources/views/Pelanggan/pesanan.blade.php --}}
 @extends('Template.pelanggan')
 
-@section('title', 'Pesanan Saya')
+@section('title', 'Riwayat Pesanan')
 
 @section('content')
 <section class="bg-gray-200 py-12 min-h-screen" x-data="pesananApp()">
@@ -8,7 +9,7 @@
 
   <div class="max-w-screen-xl mx-auto px-4">
     <div class="bg-white rounded-lg shadow p-6 min-h-[550px] px-4 sm:px-6 lg:px-8">
-      <h1 class="text-3xl font-bold mb-6 text-left">Status Pesanan Saya</h1>
+      <h1 class="text-3xl font-bold mb-6 text-left">Riwayat Pesanan</h1>
 
       @if (session('success'))
         <div class="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800">
@@ -51,59 +52,106 @@
                 'batal','gagal'        => 'bg-red-100 text-red-800',
                 default                => 'bg-gray-100 text-gray-800',
               };
+              $totalQty   = $pesanan->detail->sum(fn($d) => (int)($d->jumlah ?? 1));
+              $hasAction  = in_array($pesanan->status, ['butuh_cek_ukuran','belum_bayar','di_proses']);
             @endphp
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border rounded-lg p-6 bg-white shadow">
-              <div class="md:col-span-3 flex justify-between items-center">
-                <span class="text-gray-600 font-medium">{{ $pesanan->created_at->format('d M Y') }}</span>
+            <div class="border rounded-xl p-4 sm:p-6 bg-white shadow">
+              {{-- Header order --}}
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3 flex-wrap">
+                  {{-- Order ID di kiri, lalu tanggal --}}
+                  <span class="inline-flex items-center gap-2 text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-800">
+                    <i class="fas fa-receipt"></i>
+                    <span class="font-semibold">Order ID:</span>
+                    <span class="font-mono">{{ $pesanan->order_id }}</span>
+                  </span>
+                  <span class="text-gray-600 font-medium">{{ $pesanan->created_at->format('d M Y') }}</span>
+                </div>
                 <span class="text-sm px-3 py-1 rounded-full {{ $statusColor }}">{{ $statusText }}</span>
               </div>
 
-              <div class="md:col-span-3">
-                <div class="my-4 h-px w-full bg-gray-200"></div>
-              </div>
+              <div class="my-4 h-px w-full bg-gray-200"></div>
 
-              <div class="md:col-span-2 space-y-4">
-                @foreach ($pesanan->detail as $detail)
-                  @php $gambar = $detail->produk?->gambar->first()?->gambar; @endphp
-                  <div class="flex items-center gap-4 border-b border-gray-200 pb-4 last:border-b-0">
-                    <div class="w-20 h-20 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                      @if ($gambar)
-                        <img src="{{ asset('storage/'.$gambar) }}" alt="Produk" class="w-full h-full object-cover">
-                      @else
-                        <div class="flex items-center justify-center h-full text-gray-400 text-xs">No Gambar</div>
+              {{-- Isi: daftar item & ringkasan + tombol --}}
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {{-- Daftar item --}}
+                <div class="md:col-span-2 space-y-4">
+                  @foreach ($pesanan->detail as $detail)
+                    @php $gambar = $detail->produk?->gambar->first()?->gambar; @endphp
+                    <div class="flex items-start gap-4 border rounded-lg p-3">
+                      <div class="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                        @if ($gambar)
+                          <img src="{{ asset('storage/'.$gambar) }}" alt="Produk" class="w-full h-full object-cover">
+                        @else
+                          <div class="flex items-center justify-center h-full text-gray-400 text-xs">No Gambar</div>
+                        @endif
+                      </div>
+                      <div class="flex-1">
+                        <p class="font-semibold text-gray-800 leading-tight">
+                          {{ $detail->nama_produk }}
+                          <span class="text-gray-500 font-normal">×{{ (int)($detail->jumlah ?? 1) }}</span>
+                        </p>
+                        <p class="text-gray-600 text-sm mt-0.5">{{ $detail->produk?->kategori ?? '-' }}</p>
+                      </div>
+                    </div>
+                  @endforeach
+                </div>
+
+                {{-- Ringkasan + tombol (dalam kotak/card) --}}
+                <div class="md:col-span-1">
+                  <div class="rounded-xl border bg-gray-50 p-4 sm:p-5 flex flex-col {{ $hasAction ? 'min-h-[200px]' : '' }}">
+                    <h3 class="text-sm font-semibold text-gray-800 mb-3">Ringkasan Pesanan</h3>
+
+                    <div class="space-y-3">
+                      <div class="flex items-center justify-between">
+                        <p class="text-gray-600 text-sm">Jumlah Pesanan</p>
+                        <p class="text-base font-semibold">{{ $totalQty }}</p>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <p class="text-gray-600 text-sm">Total Harga</p>
+                        <p class="text-xl font-bold">Rp {{ number_format($pesanan->total_harga,0,',','.') }}</p>
+                      </div>
+                    </div>
+
+                    {{-- Hanya render spacer + tombol jika ada aksi --}}
+                    @if ($hasAction)
+                      <div class="mt-auto pt-4">
+                        @if ($pesanan->status === 'butuh_cek_ukuran')
+                          <form action="{{ route('pesanan.batal', $pesanan->id) }}" method="POST"
+                                @submit.prevent="confirmAction('Batalkan Pesanan','Yakin ingin membatalkan pesanan ini?',() => $el.submit())">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-medium">
+                              Batalkan Pesanan
+                            </button>
+                          </form>
+                        @elseif ($pesanan->status === 'belum_bayar')
+                          <button @click="pay('{{ $pesanan->id }}')"
+                                  class="w-full inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium">
+                            Bayar Sekarang
+                          </button>
+                        @elseif ($pesanan->status === 'di_proses')
+                          <form action="{{ route('pesanan.ajukan_refund', $pesanan->id) }}" method="POST"
+                                @submit.prevent="confirmAction('Ajukan Refund','Ajukan pengembalian dana untuk pesanan ini?',() => $el.submit())">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full inline-flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-800 text-white py-2.5 rounded-lg font-medium">
+                              Ajukan Refund
+                            </button>
+                          </form>
+                        @endif
+                      </div>
+                    @else
+                      {{-- Jika tidak ada aksi dan status khusus, beri info kecil opsional --}}
+                      @if ($pesanan->status === 'pengembalian_dana')
+                        <div class="text-sm text-gray-600 mt-3">Menunggu proses pengembalian dana.</div>
                       @endif
-                    </div>
-                    <div class="flex-1">
-                      <p class="font-semibold text-gray-800">{{ $detail->nama_produk }}</p>
-                      <p class="text-gray-600 text-sm">{{ $detail->produk?->kategori ?? '-' }}</p>
-                    </div>
+                    @endif
                   </div>
-                @endforeach
-              </div>
-
-              <div class="flex flex-col justify-between items-end">
-                <div class="space-y-2">
-                  <p class="text-gray-600 text-sm">Total Harga</p>
-                  <p class="text-xl font-bold">Rp {{ number_format($pesanan->total_harga,0,',','.') }}</p>
-                </div>
-                <div class="mt-4 w-full">
-                  @if ($pesanan->status === 'butuh_cek_ukuran')
-                    <form action="{{ route('pesanan.batal', $pesanan->id) }}" method="POST" @submit.prevent="confirmAction('Batalkan Pesanan','Yakin ingin membatalkan pesanan ini?',() => $el.submit())">
-                      @csrf
-                      <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded">Batalkan Pesanan</button>
-                    </form>
-                  @elseif ($pesanan->status === 'belum_bayar')
-                    <button @click="pay('{{ $pesanan->id }}')" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">Bayar Sekarang</button>
-                  @elseif ($pesanan->status === 'di_proses')
-                    <form action="{{ route('pesanan.ajukan_refund', $pesanan->id) }}" method="POST" @submit.prevent="confirmAction('Ajukan Refund','Ajukan pengembalian dana untuk pesanan ini?',() => $el.submit())">
-                      @csrf
-                      <button type="submit" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded">Ajukan Refund</button>
-                    </form>
-                  @elseif ($pesanan->status === 'pengembalian_dana')
-                  @endif
                 </div>
               </div>
+              {{-- /Isi --}}
             </div>
           @endforeach
         </div>
@@ -152,8 +200,10 @@
     @endif
   </div>
 
+  {{-- Popup --}}
   <div x-show="popup.show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="popup.show = false">
-    <div class="absolute inset-0 bg-black/50" x-transition.opacity @click="popup.type==='confirm' ? (popup.onCancel ? popup.onCancel() : popup.show=false) : (popup.show=false)"></div>
+    <div class="absolute inset-0 bg-black/50" x-transition.opacity
+         @click="popup.type==='confirm' ? (popup.onCancel ? popup.onCancel() : popup.show=false) : (popup.show=false)"></div>
     <div class="relative bg-white rounded-xl shadow-lg w-full max-w-md p-6" x-transition.scale.origin.center role="dialog" aria-modal="true" :aria-label="popup.title || 'Dialog'">
       <h2 class="text-lg font-semibold mb-2" x-text="popup.title || 'Pemberitahuan'"></h2>
       <p class="text-sm text-gray-700 mb-6" x-text="popup.message || ''"></p>
@@ -161,7 +211,8 @@
         <template x-if="popup.type === 'confirm'">
           <button type="button" class="px-4 py-2 border rounded hover:bg-gray-100" @click="popup.onCancel ? popup.onCancel() : (popup.show = false)">Batal</button>
         </template>
-        <button type="button" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800" @click="popup.type === 'confirm' ? (popup.onConfirm ? popup.onConfirm() : null) : (popup.show = false)">
+        <button type="button" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                @click="popup.type === 'confirm' ? (popup.onConfirm ? popup.onConfirm() : null) : (popup.show = false)">
           <span x-text="popup.type === 'confirm' ? 'Ya' : 'Tutup'"></span>
         </button>
       </div>
@@ -180,7 +231,7 @@ window.pesananApp = function() {
   return {
     popup: { show: false, type: '', title: '', message: '', onConfirm: null, onCancel: null },
     csrf() {
-      const m = document.querySelector('meta[name="csrf-token"]');
+      const m = document.querySelector('meta[name="csrf-token']");
       return m ? m.getAttribute('content') : @json(csrf_token());
     },
     confirmAction(title, message, onConfirm = () => {}) {
@@ -192,6 +243,9 @@ window.pesananApp = function() {
         onConfirm: () => { try { onConfirm(); } finally { this.popup.show = false; } },
         onCancel: () => { this.popup.show = false; }
       };
+    },
+    info(title, message) {
+      this.popup = { show: true, type: '', title, message, onConfirm: null, onCancel: null };
     },
     async pay(id) {
       try {
@@ -206,14 +260,18 @@ window.pesananApp = function() {
         }
         const { snap_token } = await res.json();
         if (!snap_token || !window.snap) throw new Error('Token atau Snap.js tidak tersedia.');
+
         window.snap.pay(snap_token, {
           onSuccess: () => { location.reload(); },
           onPending: () => {},
-          onError: (e) => { alert((e && e.status_message) ? e.status_message : 'Terjadi kesalahan saat pembayaran.'); },
+          onError: (e) => {
+            const msg = (e && e.status_message) ? e.status_message : 'Terjadi kesalahan saat pembayaran.';
+            this.info('Gagal Pembayaran', msg);
+          },
           onClose: () => {}
         });
       } catch (e) {
-        alert(e.message || 'Tidak bisa memulai pembayaran.');
+        this.info('Gagal Memulai Pembayaran', e.message || 'Tidak bisa memulai pembayaran.');
       }
     }
   };

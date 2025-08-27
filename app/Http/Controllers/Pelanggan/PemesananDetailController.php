@@ -3,172 +3,240 @@
 namespace App\Http\Controllers\Pelanggan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin;
 use App\Models\Pemesanan;
 use App\Models\PemesananDetail;
 use App\Models\Produk;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class PemesananDetailController extends Controller
 {
     public function index(Request $request)
     {
-        $rawCart = collect(session('cart', []));
+        $items = collect();
 
-        $cart = $rawCart->map(function ($row) {
-            $r = is_array($row) ? $row : (array) $row;
+        if (auth()->check()) {
+            $details = PemesananDetail::with(['produk.gambar'])
+                ->where('pelanggan_id', auth()->id())
+                ->whereNull('pemesanan_id')
+                ->get();
 
-            if (empty($r['line_id'])) {
-                $r['line_id'] = (string) Str::uuid();
-            }
-
-            if (!empty($r['produk_id']) && (empty($r['nama']) || empty($r['kategori']) || empty($r['gambar']))) {
-                $p = Produk::with('gambar')->find($r['produk_id']);
-                if ($p) {
-                    $r['nama']     = $r['nama']     ?? $p->nama;
-                    $r['kategori'] = $r['kategori'] ?? $p->kategori;
-                    $r['gambar']   = $r['gambar']   ?? (optional($p->gambar->first())->gambar
-                        ? asset('storage/' . $p->gambar->first()->gambar)
-                        : asset('assets/default.jpg'));
-                }
-            }
-
-            return $r;
-        })->values();
-
-        if ($cart->toJson() !== $rawCart->toJson()) {
-            session(['cart' => $cart->all()]);
+            $items = $details->map(function ($row) {
+                $firstImg = optional($row->produk?->gambar?->first())->gambar;
+                return [
+                    'line_id'  => $row->id,
+                    'nama'     => $row->nama_produk ?? optional($row->produk)->nama ?? 'Produk',
+                    'kategori' => optional($row->produk)->kategori ?? '-',
+                    'gambar'   => $firstImg ? asset('storage/' . $firstImg) : asset('assets/default.jpg'),
+                    'jumlah'   => (int)($row->jumlah ?? 1),
+                ];
+            });
         }
 
-        $items = $cart->map(function ($r) {
-            return [
-                'line_id'   => $r['line_id'],
-                'produk_id' => $r['produk_id'] ?? null,
-                'nama'      => $r['nama'] ?? 'Produk',
-                'kategori'  => $r['kategori'] ?? '-',
-                'gambar'    => $r['gambar'] ?? asset('assets/default.jpg'),
-            ];
-        });
-
-        return view('pelanggan.pemesananDetail', compact('items'));
+        return view('Pelanggan.pemesananDetail', compact('items'));
     }
 
     public function tambah(Request $request)
     {
-        $request->validate([
-            'produk_id' => 'required|exists:produk,id',
+        $request->validate(['produk_id' => 'required|exists:produk,id']);
+
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $pelangganId = auth()->id();
+        $produk      = Produk::with('gambar')->findOrFail($request->produk_id);
+
+        $existing = PemesananDetail::where('pelanggan_id', $pelangganId)
+            ->whereNull('pemesanan_id')
+            ->where('produk_id', $produk->id)
+            ->first();
+
+        if ($existing) {
+            $existing->increment('jumlah');
+        } else {
+            PemesananDetail::create([
+                'pelanggan_id' => $pelangganId,
+                'pemesanan_id' => null,
+                'produk_id'    => $produk->id,
+                'nama_produk'  => $produk->nama,
+                'jumlah'       => 1,
+            ]);
+        }
+
+        $count = PemesananDetail::where('pelanggan_id', $pelangganId)
+            ->whereNull('pemesanan_id')
+            ->count();
+
+        return response()->json([
+            'success'    => true,
+            'cart_count' => (int)$count,
+        ]);
+    }
+
+    public function hapus(string $detailId)
+    {
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        PemesananDetail::where('id', $detailId)
+            ->where('pelanggan_id', auth()->id())
+            ->whereNull('pemesanan_id')
+            ->delete();
+
+        $cartCount = PemesananDetail::where('pelanggan_id', auth()->id())
+            ->whereNull('pemesanan_id')
+            ->count();
+
+        return response()->json(['success' => true, 'cart_count' => (int)$cartCount]);
+    }
+
+    public function ubahJumlah(Request $request, string $detailId)
+    {
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $validated = $request->validate([
+            'jumlah' => 'required|integer|min:0|max:999',
         ]);
 
-        $produk = Produk::with('gambar')->findOrFail($request->produk_id);
+        $detail = PemesananDetail::where('id', $detailId)
+            ->where('pelanggan_id', auth()->id())
+            ->whereNull('pemesanan_id')
+            ->first();
 
-        $cart = session('cart', []);
-
-        $cart[] = [
-            'line_id'   => (string) Str::uuid(),
-            'produk_id' => $produk->id,
-            'nama'      => $produk->nama,
-            'kategori'  => $produk->kategori,
-            'gambar'    => optional($produk->gambar->first())->gambar
-                ? asset('storage/' . $produk->gambar->first()->gambar)
-                : asset('assets/default.jpg'),
-        ];
-
-        session(['cart' => $cart]);
-
-        if ($request->expectsJson()) {
-            return response()->json(['success' => true], 200);
+        if (!$detail) {
+            return response()->json(['error' => 'Item tidak ditemukan.'], 404);
         }
 
-        return back()->with('success', 'Produk berhasil ditambahkan ke keranjang.');
-    }
-
-    public function hapus(Request $request, $lineId)
-    {
-        $cart = collect(session('cart', []))
-            ->reject(fn ($row) => (is_array($row) ? ($row['line_id'] ?? null) : ((array) $row)['line_id'] ?? null) === $lineId)
-            ->values()
-            ->all();
-
-        session(['cart' => $cart]);
-
-        return response()->json(['ok' => true]);
-    }
-
-    public function checkout(Request $request)
-    {
-        $items = $request->input('items', []);
-        if (!is_array($items) || empty($items)) {
-            return response()->json(['error' => 'Payload "items" kosong atau bukan array'], 422);
+        if ($validated['jumlah'] === 0) {
+            $detail->delete();
+            $newQty = 0;
+        } else {
+            $detail->jumlah = $validated['jumlah'];
+            $detail->save();
+            $newQty = (int)$detail->jumlah;
         }
 
-        $buyNow     = $request->boolean('buy_now');
-        $kirimEmail = $request->boolean('kirim_email');
+        $cartCount = PemesananDetail::where('pelanggan_id', auth()->id())
+            ->whereNull('pemesanan_id')
+            ->count();
 
-        DB::beginTransaction();
-        try {
-            $order = Pemesanan::create([
-                'order_id'     => 'ORDER-' . strtoupper(uniqid()),
-                'pelanggan_id' => auth()->id(),
-                'status'       => 'butuh_cek_ukuran',
-                'keuntungan'   => 3,
-                'total_harga'  => 0,
-            ]);
+        return response()->json([
+            'success'     => true,
+            'new_qty'     => $newQty,
+            'cart_count'  => (int)$cartCount,
+            'line_id'     => (int)$detailId,
+        ]);
+    }
 
-            if ($buyNow) {
-                foreach ($items as $produkId) {
-                    $produk = Produk::find($produkId);
-                    if ($produk) {
+    public function pesan(Request $request)
+    {
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $pelangganId = auth()->id();
+        $rawItems    = $request->input('items', []);
+        $buyNow      = (bool) $request->boolean('buy_now', false);
+        $kirimEmail  = (bool) $request->boolean('kirim_email', false);
+
+        $ids = array_values(array_unique(array_map('intval', is_array($rawItems) ? $rawItems : [])));
+        if (empty($ids)) {
+            return response()->json(['error' => 'Items tidak boleh kosong'], 422);
+        }
+
+        $STATUS_AWAL = 'butuh_cek_ukuran';
+
+        if ($buyNow) {
+            try {
+                [$order, $emailed] = DB::transaction(function () use ($pelangganId, $ids, $STATUS_AWAL, $kirimEmail) {
+                    $order = Pemesanan::create([
+                        'pelanggan_id'      => $pelangganId,
+                        'order_id'          => 'ORDER-' . strtoupper(uniqid()),
+                        'snap_token'        => null,
+                        'total_harga'       => 0,
+                        'status'            => $STATUS_AWAL,
+                        'midtrans_response' => null,
+                    ]);
+
+                    $produkIds = Produk::whereIn('id', $ids)->pluck('id')->all();
+                    foreach ($produkIds as $pid) {
+                        $p = Produk::find($pid);
+                        if (!$p) continue;
+
                         PemesananDetail::create([
+                            'pelanggan_id' => $pelangganId,
                             'pemesanan_id' => $order->id,
-                            'produk_id'    => $produk->id,
-                            'nama_produk'  => $produk->nama,
+                            'produk_id'    => $p->id,
+                            'nama_produk'  => $p->nama,
+                            'jumlah'       => 1,
                         ]);
                     }
-                }
-            } else {
-                $cart = collect(session('cart', []));
-                $selected = $cart->whereIn('line_id', $items);
 
-                if ($selected->isEmpty()) {
-                    DB::rollBack();
-                    return response()->json(['error' => 'Item yang dipilih tidak ditemukan di keranjang.'], 422);
-                }
+                    $emailed = $kirimEmail ? $this->notifyAdmins($order) : false;
+                    return [$order, $emailed];
+                });
 
-                foreach ($selected as $row) {
-                    PemesananDetail::create([
-                        'pemesanan_id' => $order->id,
-                        'produk_id'    => $row['produk_id'],
-                        'nama_produk'  => $row['nama'],
-                    ]);
-                }
-
-                $remain = $cart->reject(fn ($r) => in_array($r['line_id'], $items))->values()->all();
-                session(['cart' => $remain]);
+                return response()->json([
+                    'success'          => true,
+                    'email_sent_admin' => $emailed,
+                    'pemesanan_id'     => $order->id,
+                    'order_id'         => $order->order_id,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Buy now error: ' . $e->getMessage());
+                return response()->json(['error' => 'Gagal membuat pesanan.'], 500);
             }
+        }
 
-            DB::commit();
+        $selectedDetails = PemesananDetail::where('pelanggan_id', $pelangganId)
+            ->whereNull('pemesanan_id')
+            ->whereIn('id', $ids)
+            ->get();
 
-            $emailedAdmin = false;
-            if ($kirimEmail) {
-                $emailedAdmin = $this->notifyAdmins($order);
-            }
+        if ($selectedDetails->isEmpty()) {
+            return response()->json(['error' => 'Item terpilih tidak valid atau keranjang kosong.'], 422);
+        }
+
+        try {
+            [$order, $emailed] = DB::transaction(function () use ($pelangganId, $selectedDetails, $STATUS_AWAL, $kirimEmail) {
+                $order = Pemesanan::create([
+                    'pelanggan_id'      => $pelangganId,
+                    'order_id'          => 'ORDER-' . strtoupper(uniqid()),
+                    'snap_token'        => null,
+                    'total_harga'       => 0,
+                    'status'            => $STATUS_AWAL,
+                    'midtrans_response' => null,
+                ]);
+
+                PemesananDetail::whereIn('id', $selectedDetails->pluck('id'))
+                    ->update(['pemesanan_id' => $order->id]);
+
+                $emailed = $kirimEmail ? $this->notifyAdmins($order) : false;
+
+                return [$order, $emailed];
+            });
+
+            $cartCount = PemesananDetail::where('pelanggan_id', $pelangganId)
+                ->whereNull('pemesanan_id')
+                ->count();
 
             return response()->json([
                 'success'          => true,
-                'email_sent_admin' => $emailedAdmin,
+                'email_sent_admin' => $emailed,
                 'order_id'         => $order->order_id,
                 'pemesanan_id'     => $order->id,
-            ], 200);
+                'cart_count'       => (int)$cartCount,
+            ]);
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('Checkout error: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Gagal membuat pesanan: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['error' => 'Gagal membuat pesanan.'], 500);
         }
     }
 
@@ -176,20 +244,18 @@ class PemesananDetailController extends Controller
     {
         try {
             $emails = Admin::whereNotNull('email')->pluck('email')->filter()->unique()->values();
-            if ($emails->isEmpty()) {
-                return false;
-            }
+            if ($emails->isEmpty()) return false;
 
             $order->load(['pelanggan', 'detail.produk']);
 
             $custName  = optional($order->pelanggan)->name ?? 'Pelanggan';
             $custEmail = optional($order->pelanggan)->email ?? '-';
-            $custPhone = optional($order->pelanggan)->telepon
-                ?? optional($order->pelanggan)->phone
-                ?? '-';
+            $custPhone = optional($order->pelanggan)->telepon ?? optional($order->pelanggan)->phone ?? '-';
 
             $itemsList = $order->detail->map(function ($d) {
-                return '• ' . ($d->nama_produk ?? optional($d->produk)->nama ?? 'Produk');
+                $nm = $d->nama_produk ?? optional($d->produk)->nama ?? 'Produk';
+                $qty = (int)($d->jumlah ?? 1);
+                return '• ' . $nm . ' (x' . $qty . ')';
             })->implode("\n");
 
             $manageUrl = route('admin.pemesanan.kebutuhan.edit', $order->id);
@@ -204,9 +270,7 @@ class PemesananDetailController extends Controller
             $to = $emails->shift();
             Mail::raw($body, function ($m) use ($to, $emails, $order) {
                 $m->to($to)->subject('Pesanan Baru - ' . $order->order_id);
-                if ($emails->isNotEmpty()) {
-                    $m->bcc($emails->all());
-                }
+                if ($emails->isNotEmpty()) $m->bcc($emails->all());
             });
 
             return true;

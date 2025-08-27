@@ -5,7 +5,7 @@
 @section('content')
 <section class="min-h-screen flex items-center justify-center bg-gray-100">
   <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center">Login Admin</h2>
+    <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
 
     <form method="POST" action="{{ route('admin.login') }}" class="space-y-4" novalidate>
       @csrf

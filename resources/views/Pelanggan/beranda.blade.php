@@ -24,24 +24,27 @@
 <section class="py-16 bg-white">
     <div class="max-w-screen-xl mx-auto px-4">
         <h2 class="text-3xl font-bold mb-10 text-center">Produk Terbaru</h2>
+
         <div class="flex flex-wrap justify-center gap-6">
             @if (count($kategoriList))
                 @foreach ($kategoriList as $kategori)
-                    <a href="{{ route('produk.show', ['id' => $kategori['id'], 'back' => url()->current()]) }}" class="w-full sm:w-[47%] md:w-[30%] border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition bg-white flex flex-col">
-                        @php
-                            $imgPath = !empty($kategori['img']) && file_exists(public_path('storage/' . $kategori['img'])) ? 'storage/' . $kategori['img'] : 'assets/default.jpg';
-                        @endphp
-                        <img src="{{ asset($imgPath) }}" alt="{{ $kategori['nama_produk'] }}" class="w-full h-48 sm:h-52 object-cover">
+                    @php
+                        $imgPath = !empty($kategori['img']) && file_exists(public_path('storage/' . $kategori['img']))
+                            ? 'storage/' . $kategori['img']
+                            : 'assets/default.jpg';
+                    @endphp
+
+                    <div class="w-full sm:w-[47%] md:w-[30%] border rounded-lg overflow-hidden shadow-md bg-white flex flex-col">
+                        <img src="{{ asset($imgPath) }}"
+                             alt="{{ $kategori['nama_produk'] }}"
+                             class="w-full h-48 sm:h-52 object-cover">
                         <div class="p-4 flex flex-col flex-1 justify-between">
                             <div class="space-y-1">
                                 <h3 class="text-lg font-semibold text-gray-800 truncate">{{ $kategori['nama_produk'] }}</h3>
                                 <p class="text-sm text-gray-500 truncate">{{ $kategori['nama'] }}</p>
                             </div>
-                            <div class="mt-4 text-center">
-                                <span class="inline-block text-blue-600 font-medium hover:underline">Lihat Detail</span>
-                            </div>
                         </div>
-                    </a>
+                    </div>
                 @endforeach
             @else
                 <p class="text-gray-600 text-center w-full">Tidak ada produk ditemukan.</p>

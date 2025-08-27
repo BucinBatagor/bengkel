@@ -78,7 +78,7 @@
                     </div>
 
                     <div class="pt-4">
-                        <button type="submit" class="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition">Simpan Perubahan</button>
+                        <button type="submit" class="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition">Simpan</button>
                     </div>
                 </form>
             </div>

@@ -5,8 +5,9 @@
 @section('content')
 <section class="flex flex-col items-center px-6 py-6 w-full" x-data="{ show: false, deleteUrl: '' }">
   <div class="bg-white rounded-lg shadow px-6 py-6 w-full max-w-screen-xl min-h-[600px]">
-    <h1 class="text-2xl font-bold mb-6">KELOLA KATEGORI</h1>
+    <h1 class="text-2xl font-bold mb-6">Kelola Kategori</h1>
 
+    <!-- Mobile -->
     <div class="block md:hidden mb-6 space-y-4">
       <form method="GET" action="{{ route('admin.kategori.index') }}" class="flex w-full" novalidate>
         <div class="relative flex w-full">
@@ -37,6 +38,7 @@
       >+ Tambah Kategori</a>
     </div>
 
+    <!-- Desktop -->
     <div class="hidden md:flex md:items-center md:justify-between mb-6">
       <a
         href="{{ route('admin.kategori.create') }}"
@@ -67,11 +69,12 @@
       </form>
     </div>
 
+    <!-- Table -->
     <div class="overflow-x-auto rounded">
       <table class="min-w-full border border-gray-300 text-sm text-left">
         <thead class="bg-black text-white uppercase text-xs tracking-wider">
           <tr>
-            <th class="px-5 py-3 border-r">#</th>
+            <th class="px-5 py-3 border-r text-center">#</th>
             <th class="px-5 py-3 border-r">Nama Kategori</th>
             <th class="px-5 py-3">Aksi</th>
           </tr>
@@ -79,7 +82,7 @@
         <tbody class="text-gray-700">
           @forelse ($kategori as $item)
             <tr class="hover:bg-gray-50 border-b border-gray-300">
-              <td class="px-5 py-3 border-r">{{ $kategori->firstItem() + $loop->index }}</td>
+              <td class="px-5 py-3 border-r text-center">{{ $kategori->firstItem() + $loop->index }}</td>
               <td class="px-5 py-3 border-r font-medium">{{ $item->nama }}</td>
               <td class="px-5 py-3">
                 <div class="flex items-center gap-3">
@@ -99,6 +102,7 @@
       </table>
     </div>
 
+    <!-- Popup Hapus -->
     <div x-show="show" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div class="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md text-center">
         <h2 class="text-lg font-bold mb-4">Konfirmasi Penghapusan</h2>
@@ -113,6 +117,7 @@
     </div>
   </div>
 
+  <!-- Pagination -->
   <div class="w-full max-w-screen-xl mx-auto">
     <div class="flex justify-center mt-8">
       <ul class="flex flex-wrap items-center gap-1 text-sm">

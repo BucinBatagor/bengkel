@@ -1,6 +1,6 @@
 @extends('Template.admin')
 
-@section('title', 'Kebutuhan Pesanan')
+@section('title', 'Kebutuhan')
 
 @section('content')
 @php
@@ -13,13 +13,17 @@ $detailIds = $pesanan->detail->pluck('id')->values();
     x-data="needsForm(@js($detailIds), @json(old('keuntungan', $pesanan->keuntungan ?? 3)))"
   >
     <div class="mb-4">
-      <h1 class="text-2xl font-bold mb-2 uppercase">Pesanan {{ $pesanan->pelanggan->name ?? '—' }}</h1>
       <a
         href="{{ route('admin.pemesanan.index') }}"
-        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition"
+        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition mb-2"
       >
         <span>←</span><span>Kembali</span>
       </a>
+      {{-- Judul: title case, bukan uppercase --}}
+      <h1 class="text-2xl font-bold">
+        <span class="capitalize">Pesanan</span>
+        <span class="capitalize">{{ $pesanan->pelanggan->name ?? '—' }}</span>
+      </h1>
     </div>
 
     <form method="POST" action="{{ route('admin.pemesanan.kebutuhan.store', $pesanan->id) }}" @submit.prevent="beforeSubmit($event)">
@@ -27,8 +31,9 @@ $detailIds = $pesanan->detail->pluck('id')->values();
 
       @foreach($pesanan->detail as $detail)
       <div class="border rounded-lg mb-8">
-        <div class="px-5 py-4 border-b flex items-center justify-start bg-gray-50">
-          <div class="flex items-center gap-4">
+        {{-- Sejajarkan teks dengan bagian atas gambar: gunakan items-start --}}
+        <div class="px-5 py-4 border-b flex items-start justify-start bg-gray-50">
+          <div class="flex items-start gap-4">
             @php $gambar = $detail->produk?->gambar->first()?->gambar; @endphp
             <div class="w-14 h-14 rounded overflow-hidden bg-gray-200">
               @if($gambar)
@@ -37,6 +42,7 @@ $detailIds = $pesanan->detail->pluck('id')->values();
             </div>
             <div>
               <div class="font-semibold">{{ $detail->nama_produk }}</div>
+              <div class="text-sm text-gray-600">Jumlah {{ (int)($detail->jumlah ?? 1) }}</div>
             </div>
           </div>
         </div>
@@ -45,11 +51,11 @@ $detailIds = $pesanan->detail->pluck('id')->values();
           <table class="min-w-[980px] w-full border border-gray-300 border-collapse text-sm">
             <thead class="bg-black text-white uppercase text-xs tracking-wider sticky top-0 z-10">
               <tr>
-                <th class="px-5 py-3 border border-gray-300 w-48 text-center">Kategori</th>
-                <th class="px-5 py-3 border border-gray-300 text-center">Nama Kebutuhan</th>
-                <th class="px-5 py-3 border border-gray-300 w-40 text-center">Kuantitas</th>
-                <th class="px-5 py-3 border border-gray-300 w-44 text-center">Harga</th>
-                <th class="px-5 py-3 border border-gray-300 w-44 text-center">Total</th>
+                <th class="px-5 py-3 border border-gray-300 w-48 text-left">Kategori</th>
+                <th class="px-5 py-3 border border-gray-300 text-left">Nama Kebutuhan</th>
+                <th class="px-5 py-3 border border-gray-300 w-40 text-left">Kuantitas</th>
+                <th class="px-5 py-3 border border-gray-300 w-44 text-left">Harga</th>
+                <th class="px-5 py-3 border border-gray-300 w-44 text-left">Total</th>
                 <th class="px-5 py-3 border border-gray-300 w-24 text-center">Aksi</th>
               </tr>
             </thead>
@@ -77,7 +83,7 @@ $detailIds = $pesanan->detail->pluck('id')->values();
                       x-model="row.kuantitas_str"
                       @input="row.kuantitas_str = oneDecimalComma(row.kuantitas_str)"
                       inputmode="decimal"
-                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black text-right font-mono"
+                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black font-mono"
                     >
                   </td>
                   <td class="px-5 py-3 border border-gray-300">
@@ -86,10 +92,10 @@ $detailIds = $pesanan->detail->pluck('id')->values();
                       x-model="row.harga_str"
                       @input="formatHarga({{ $detail->id }}, i)"
                       inputmode="numeric"
-                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black text-right font-mono"
+                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black font-mono"
                     >
                   </td>
-                  <td class="px-5 py-3 border border-gray-300 text-right font-medium font-mono" x-text="formatRupiah(rowTotal(row))"></td>
+                  <td class="px-5 py-3 border border-gray-300 font-medium font-mono" x-text="formatRupiah(rowTotal(row))"></td>
                   <td class="px-5 py-3 border border-gray-300 text-center">
                     <button type="button" @click="removeRow({{ $detail->id }}, i)" class="text-red-600 hover:text-red-700 underline">Hapus</button>
                   </td>
@@ -149,7 +155,7 @@ $detailIds = $pesanan->detail->pluck('id')->values();
           <span class="font-bold" x-text="formatRupiah(grandTotalAll())"></span>
         </div>
         <button type="submit" class="bg-black text-white px-5 py-2 rounded hover:bg-gray-800">
-          Simpan Kebutuhan
+          Simpan
         </button>
       </div>
     </form>
@@ -173,6 +179,7 @@ $detailIds = $pesanan->detail->pluck('id')->values();
       itemsByDetail,
       keuntungan: Number(keuntunganAwal) || 3,
 
+      // Format angka: "1.234.567"
       formatIDRIntInput(raw) {
         const s = String(raw || '').replace(/\D/g, '');
         return s.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -182,10 +189,9 @@ $detailIds = $pesanan->detail->pluck('id')->values();
         return s ? parseInt(s, 10) : 0;
       },
 
+      // Kuantitas: 1 desimal, koma sebagai pemisah (contoh "12,3")
       oneDecimalComma(str) {
-        let s = String(str ?? '').replace(/[^\d,\.]/g, '');
-        s = s.replace(/\./g, ',');
-        s = s.replace(/,+/g, ',');
+        let s = String(str ?? '').replace(/[^\d,\. ,]/g, '').replace(/\./g, ',').replace(/,+/g, ',');
         if (s === '') return '';
         if (s[0] === ',') s = '0' + s;
         const parts = s.split(',');

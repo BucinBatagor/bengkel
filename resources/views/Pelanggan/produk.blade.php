@@ -1,20 +1,26 @@
 @extends('Template.pelanggan')
 
-@section('title', 'Detail Produk')
+@section('title', 'Katalog')
 
 @section('content')
 @php
     $appBase = url('/');
     $backUrl = request()->query('back');
+
     if ($backUrl && !\Illuminate\Support\Str::startsWith($backUrl, $appBase)) {
         $backUrl = null;
     }
+
     if (!$backUrl) {
         $ref = url()->previous();
         if ($ref && \Illuminate\Support\Str::startsWith($ref, $appBase) && $ref !== url()->current()) {
-            $backUrl = $ref;
+            $refPath = parse_url($ref, PHP_URL_PATH) ?? '/';
+            if (\Illuminate\Support\Str::startsWith($refPath, '/katalog')) {
+                $backUrl = $ref;
+            }
         }
     }
+
     $backUrl = $backUrl ?: url('/katalog');
     $waAdmin = $waAdmin ?? '6289644819899';
 @endphp
@@ -33,6 +39,20 @@
     showAddedModal: false,
     addToCartLoading: false,
 
+    setCartCount(n) {
+      if (window.Alpine && Alpine.store('cart')) {
+        Alpine.store('cart').count = n;
+      } else {
+        const ids = ['cartBadge','cartBadgeMobile'];
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.textContent = n > 0 ? String(n) : '';
+          el.style.display = n > 0 ? 'flex' : 'none';
+        });
+      }
+    },
+
     async addToCart() {
       if (this.addToCartLoading) return;
       this.addToCartLoading = true;
@@ -42,21 +62,29 @@
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
           },
+          credentials: 'same-origin',
           body: JSON.stringify({ produk_id: {{ $produk->id }} })
         });
 
-        if (res.ok) {
-          this.showAddedModal = true;
-        } else {
-          let msg = 'Gagal menambahkan ke keranjang.';
-          try {
-            const data = await res.json();
-            msg = data.message || data.error || msg;
-          } catch (_) {}
-          alert(msg);
+        const ct = res.headers.get('content-type') || '';
+        const isJson = ct.includes('application/json');
+        const data = isJson ? await res.json() : null;
+
+        if (!res.ok) {
+          if (res.status === 401) { this.showLoginPrompt = true; return; }
+          if (res.status === 419) { alert('Sesi kedaluwarsa. Muat ulang halaman.'); return; }
+          alert((data && (data.message || data.error)) || 'Gagal menambahkan ke keranjang.');
+          return;
         }
+
+        if (data && typeof data.cart_count !== 'undefined') {
+          const parsed = parseInt(data.cart_count, 10);
+          this.setCartCount(Number.isNaN(parsed) ? 0 : parsed);
+        }
+        this.showAddedModal = true;
       } catch (_) {
         alert('Terjadi kesalahan jaringan.');
       } finally {
@@ -71,15 +99,33 @@
       try {
         const res = await fetch('{{ route('keranjang.pesan') }}', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          },
+          credentials: 'same-origin',
           body: JSON.stringify({ items: [{{ $produk->id }}], kirim_email: true, buy_now: true })
         });
-        const data = await res.json();
-        if (data.success) {
+
+        const ct = res.headers.get('content-type') || '';
+        const isJson = ct.includes('application/json');
+        const data = isJson ? await res.json() : null;
+
+        if (!res.ok) {
+          if (res.status === 401) { this.showLoginPrompt = true; return; }
+          if (res.status === 419) { alert('Sesi kedaluwarsa. Muat ulang halaman.'); return; }
+          alert((data && (data.message || data.error)) || 'Gagal memproses pesanan.');
+          return;
+        }
+
+        if (data && data.success) {
+          // Buy Now tidak menyentuh keranjang
           this.emailSentAdmin = !!(data.email_sent_admin ?? false);
           this.showWaitingModal = true;
         } else {
-          alert(data.error || 'Gagal membuat pesanan.');
+          alert((data && (data.error || data.message)) || 'Gagal membuat pesanan.');
         }
       } catch (_) {
         alert('Terjadi kesalahan jaringan.');
@@ -88,7 +134,7 @@
         this.showConfirmModal = false;
       }
     }
-}">
+  }">
   <div class="max-w-screen-xl mx-auto px-4">
     <div class="bg-white rounded-lg shadow p-6 min-h-[550px]">
       <div class="mb-4">
@@ -199,7 +245,7 @@
       <h2 class="text-lg font-bold mb-4">Anda belum login</h2>
       <p class="text-sm text-gray-600 mb-6">Silakan login terlebih dahulu untuk melanjutkan.</p>
       <div class="flex justify-center gap-4">
-        <a href="{{ route('login', ['next' => request()->fullUrl()]) }}" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Login</a>
+        <a href="{{ route('login') }}" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">Login</a>
         <button @click="showLoginPrompt = false" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
       </div>
     </div>

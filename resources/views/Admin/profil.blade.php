@@ -1,6 +1,6 @@
 @extends('Template.admin')
 
-@section('title', 'Profil Admin')
+@section('title', 'Ubah Prodil')
 
 @section('content')
 @php
@@ -16,7 +16,7 @@
 
 <section class="flex flex-col items-center px-6 py-6 w-full">
     <div
-        class="bg-white rounded-lg shadow px-6 py-6 w-full"
+        class="w-full max-w-screen-xl mx-auto bg-white rounded-lg shadow px-6 sm:px-8 py-6"
         x-data="{
             rest: @js($rest),
             updateHidden(){
@@ -28,7 +28,7 @@
             init(){ this.updateHidden(); }
         }"
     >
-        <h1 class="text-2xl font-bold mb-6">Profil Admin</h1>
+        <h1 class="text-2xl font-bold mb-6">Ubah Profil</h1>
 
         @if($errors->has('profil'))
             <div class="mb-4 text-red-700 bg-red-100 p-3 rounded">
@@ -86,7 +86,7 @@
             </div>
 
             <div>
-                <label class="block font-semibold text-sm mb-1">Nomor HP</label>
+                <label class="block font-semibold text-sm mb-1">No HP</label>
                 <div class="relative">
                     <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-700 select-none">+62</span>
                     <input
@@ -112,7 +112,7 @@
                     type="submit"
                     class="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition"
                 >
-                    Simpan Perubahan
+                    Simpan
                 </button>
             </div>
         </form>
