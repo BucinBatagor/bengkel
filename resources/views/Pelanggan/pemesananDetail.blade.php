@@ -4,14 +4,26 @@
 
 @section('content')
 @php
-    $initialIds = $items->pluck('line_id')->values();
+    // Urutkan terbaru dulu: pakai created_at desc, fallback ke line_id
+    $sorted = collect($items)->sortByDesc(function($it){
+        // handle array/object
+        $created = is_array($it) ? ($it['created_at'] ?? null) : ($it->created_at ?? null);
+        $line    = is_array($it) ? ($it['line_id'] ?? null)   : ($it->line_id ?? null);
+        return $created ?? $line;
+    })->values();
 
-    $initialData = $items->mapWithKeys(function($it){
-        return [$it['line_id'] => [
-            'nama'     => $it['nama'],
-            'kategori' => $it['kategori'],
-            'gambar'   => $it['gambar'],
-            'jumlah'   => (int)($it['jumlah'] ?? 1),
+    $initialIds = $sorted->pluck('line_id')->values();
+
+    $initialData = $sorted->mapWithKeys(function($it){
+        // akses seragam as array
+        $row = is_array($it) ? $it : $it->toArray();
+        return [$row['line_id'] => [
+            'nama'       => $row['nama'],
+            'kategori'   => $row['kategori'],
+            'gambar'     => $row['gambar'],
+            'jumlah'     => (int)($row['jumlah'] ?? 1),
+            // optional: bisa dipakai kalau mau re-sort di client
+            'created_at' => isset($row['created_at']) ? (string)$row['created_at'] : null,
         ]];
     });
 @endphp
@@ -270,6 +282,10 @@ function keranjangApp(initialIds, initialData) {
         } else {
           if (!this.itemData[id]) this.itemData[id] = {};
           this.itemData[id].jumlah = d?.new_qty ?? qty;
+
+          // (opsional) kalau ingin ketika qty berubah item naik ke atas:
+          // pindahkan item ke urutan pertama
+          // this.allIds = [id, ...this.allIds.filter(i => i !== id)];
         }
 
         this.setCartCount(typeof d?.cart_count !== 'undefined' ? d.cart_count : this.allIds.length);

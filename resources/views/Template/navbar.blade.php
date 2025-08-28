@@ -1,6 +1,7 @@
 @php
 $cartCount = 0;
-if (auth()->check()) {
+$isAuth = auth()->check();
+if ($isAuth) {
     $cartCount = \App\Models\PemesananDetail::where('pelanggan_id', auth()->id())
         ->whereNull('pemesanan_id')
         ->count();
@@ -22,7 +23,7 @@ if (auth()->check()) {
 >
   <div class="flex max-w-screen-xl mx-auto py-4 px-4 items-center justify-between">
     <div class="flex items-center space-x-4">
-      @php $homeLink = auth()->check() ? url('/katalog') : url('/beranda'); @endphp
+      @php $homeLink = $isAuth ? url('/katalog') : url('/beranda'); @endphp
       <a href="{{ $homeLink }}" aria-label="Home">
         <img src="/assets/LogoBengkel.png" alt="Logo" class="h-10 w-10 rounded-full object-cover">
       </a>
@@ -36,28 +37,33 @@ if (auth()->check()) {
     </div>
 
     <div class="hidden lg:flex justify-between items-center w-full ml-10">
-      <ul class="flex items-center space-x-4 text-sm font-semibold text-black">
-        @if (!auth()->check())
-          <li>
+      <ul class="flex items-center text-sm font-semibold text-black">
+        @if (!$isAuth)
+          {{-- Guest: Beranda | Katalog (1 garis di tengah) --}}
+          <li class="mr-4">
             <a href="/beranda" class="nav-link text-base {{ request()->is('beranda') ? 'nav-link--active' : '' }}">
               Beranda
             </a>
           </li>
-          <li class="border h-5 border-black"></li>
+          <li aria-hidden="true" class="w-px h-5 bg-black mx-2"></li>
+          <li class="ml-4">
+            <a href="/katalog" class="nav-link text-base {{ request()->is('katalog') || request()->is('produk/*') ? 'nav-link--active' : '' }}">
+              Katalog
+            </a>
+          </li>
+        @else
+          {{-- Login: | Katalog | (garis kiri & kanan) --}}
+          <li aria-hidden="true" class="w-px h-5 bg-black mr-4"></li>
+          <li>
+            <a href="/katalog" class="nav-link text-base {{ request()->is('katalog') || request()->is('produk/*') ? 'nav-link--active' : '' }}">
+              Katalog
+            </a>
+          </li>
         @endif
-
-        {{-- Divider kiri katalog --}}
-        <li class="border h-5 border-black"></li>
-
-        <li>
-          <a href="/katalog" class="nav-link text-base {{ request()->is('katalog') || request()->is('produk/*') ? 'nav-link--active' : '' }}">
-            Katalog
-          </a>
-        </li>
       </ul>
 
       <div class="flex items-center space-x-4 text-sm font-semibold">
-        @if (auth()->check())
+        @if ($isAuth)
           <a href="{{ route('keranjang.index') }}" class="relative" aria-label="Keranjang">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700 hover:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14l-1 10H6L5 8zM9 8V6a3 3 0 016 0v2"/></svg>
             <span id="cartBadge"
@@ -96,14 +102,14 @@ if (auth()->check()) {
       </div>
 
       <div class="space-y-2 text-sm">
-        @if (!auth()->check()) 
+        @if (!$isAuth) 
           <a href="/beranda" @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Beranda</a> 
         @endif
         <a href="/katalog" @click="mobileMenu=false" class="block w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">Katalog</a>
       </div>
 
       <div class="space-y-2 text-sm mt-3">
-        @if (auth()->check())
+        @if ($isAuth)
           <a href="{{ route('keranjang.index') }}" @click="mobileMenu=false" class="flex items-center justify-between w-full px-3 py-2 border border-black rounded bg-white font-medium text-black">
             <span>Keranjang</span>
             <span id="cartBadgeMobile"

@@ -1,11 +1,11 @@
 @extends('Template.authAdmin')
 
-@section('title', 'Atur Ulang Password Admin')
+@section('title', 'Atur Ulang Password')
 
 @section('content')
 <section class="min-h-screen flex items-center justify-center px-4 bg-gray-100">
   <div class="bg-white p-6 sm:p-8 rounded-lg shadow-md w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Atur Ulang Password Admin</h2>
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Atur Ulang Password</h2>
 
     @if(session('status'))
       <div class="mb-4 bg-green-100 text-green-800 text-sm px-4 py-3 rounded">
