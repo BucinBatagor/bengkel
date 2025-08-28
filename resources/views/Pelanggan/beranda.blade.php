@@ -35,13 +35,20 @@
                     @endphp
 
                     <div class="w-full sm:w-[47%] md:w-[30%] border rounded-lg overflow-hidden shadow-md bg-white flex flex-col">
-                        <img src="{{ asset($imgPath) }}"
-                             alt="{{ $kategori['nama_produk'] }}"
-                             class="w-full h-48 sm:h-52 object-cover">
+                        <img
+                            src="{{ asset($imgPath) }}"
+                            alt="{{ $kategori['nama_produk'] }}"
+                            class="w-full h-48 sm:h-52 object-cover"
+                        >
                         <div class="p-4 flex flex-col flex-1 justify-between">
                             <div class="space-y-1">
-                                <h3 class="text-lg font-semibold text-gray-800 truncate">{{ $kategori['nama_produk'] }}</h3>
-                                <p class="text-sm text-gray-500 truncate">{{ $kategori['nama'] }}</p>
+                                <!-- HAPUS truncate agar tidak '...' -->
+                                <h3 class="text-lg font-semibold text-gray-800 whitespace-normal break-words leading-snug">
+                                    {{ $kategori['nama_produk'] }}
+                                </h3>
+                                <p class="text-sm text-gray-500 whitespace-normal break-words leading-snug">
+                                    {{ $kategori['nama'] }}
+                                </p>
                             </div>
                         </div>
                     </div>

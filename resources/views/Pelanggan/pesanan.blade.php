@@ -230,10 +230,13 @@
 window.pesananApp = function() {
   return {
     popup: { show: false, type: '', title: '', message: '', onConfirm: null, onCancel: null },
+
     csrf() {
-      const m = document.querySelector('meta[name="csrf-token']");
+      // FIX: selector meta CSRF yang benar
+      const m = document.querySelector('meta[name="csrf-token"]');
       return m ? m.getAttribute('content') : @json(csrf_token());
     },
+
     confirmAction(title, message, onConfirm = () => {}) {
       this.popup = {
         show: true,
@@ -244,20 +247,28 @@ window.pesananApp = function() {
         onCancel: () => { this.popup.show = false; }
       };
     },
+
     info(title, message) {
       this.popup = { show: true, type: '', title, message, onConfirm: null, onCancel: null };
     },
+
     async pay(id) {
       try {
         const url = @json(route('pesanan.bayar', ['id' => '__ID__'])).replace('__ID__', id);
         const res = await fetch(url, {
           method: 'POST',
-          headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': this.csrf(), 'Accept': 'application/json' }
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': this.csrf(),
+            'Accept': 'application/json'
+          }
         });
+
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err.error || 'Gagal mengambil token pembayaran.');
         }
+
         const { snap_token } = await res.json();
         if (!snap_token || !window.snap) throw new Error('Token atau Snap.js tidak tersedia.');
 

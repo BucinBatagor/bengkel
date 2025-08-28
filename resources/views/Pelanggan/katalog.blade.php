@@ -10,7 +10,8 @@
 <section class="py-10 bg-gray-200 min-h-screen">
     <div class="max-w-screen-xl mx-auto px-4 space-y-6">
 
-        <div class="bg-white rounded-lg shadow p-6 h-[550px] flex flex-col">
+        <!-- Kotak putih tanpa tinggi tetap & tanpa overflow internal -->
+        <div class="bg-white rounded-lg shadow p-6 min-h-[550px]">
             <form method="GET" id="filterForm" class="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div class="relative">
                     <select name="kategori" onchange="document.getElementById('filterForm').submit();" class="appearance-none bg-black text-white font-semibold py-2 px-4 pr-8 rounded leading-tight focus:outline-none h-[42px]">
@@ -41,15 +42,22 @@
                 </div>
             </form>
 
-            <div class="flex-1 min-h-0 overflow-y-auto">
+            <!-- Grid langsung, tanpa overflow-y-auto -->
+            <div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @forelse ($produks as $produk)
                         <a href="{{ route('produk.show', $produk->id) }}?back={{ urlencode(request()->fullUrl()) }}" class="block border rounded-lg overflow-hidden shadow hover:shadow-lg transition bg-white">
-                            <img src="{{ $produk->gambar->first() ? asset('storage/' . $produk->gambar->first()->gambar) : asset('assets/default.jpg') }}" onerror="this.onerror=null;this.src='{{ asset('assets/default.jpg') }}';" alt="{{ $produk->nama }}" class="w-full h-48 object-cover">
-                            <div class="p-4 flex flex-col justify-between h-[100px]">
+                            <img
+                                src="{{ $produk->gambar->first() ? asset('storage/' . $produk->gambar->first()->gambar) : asset('assets/default.jpg') }}"
+                                onerror="this.onerror=null;this.src='{{ asset('assets/default.jpg') }}';"
+                                alt="{{ $produk->nama }}"
+                                class="w-full h-48 object-cover"
+                            >
+                            <div class="p-4">
                                 <div class="space-y-1">
-                                    <h3 class="text-base font-semibold text-gray-800 truncate">{{ $produk->nama }}</h3>
-                                    <p class="text-sm text-gray-500 truncate">{{ $produk->kategori }}</p>
+                                    <!-- Hapus 'truncate' agar tidak jadi "..." -->
+                                    <h3 class="text-base font-semibold text-gray-800 leading-snug">{{ $produk->nama }}</h3>
+                                    <p class="text-sm text-gray-500 leading-snug">{{ $produk->kategori }}</p>
                                 </div>
                             </div>
                         </a>
@@ -62,6 +70,7 @@
             </div>
         </div>
 
+        <!-- Pagination -->
         <div class="flex justify-center">
             <ul class="inline-flex items-center text-sm">
                 <div class="inline-flex space-x-1 mr-2">
