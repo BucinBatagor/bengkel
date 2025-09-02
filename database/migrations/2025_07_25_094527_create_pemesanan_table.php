@@ -25,6 +25,8 @@ return new class extends Migration
             ])->default('butuh_cek_ukuran')->index();
             $table->unsignedInteger('keuntungan')->default(3);
             $table->decimal('total_harga', 12, 2)->default(0);
+            $table->decimal('dp', 12, 2)->default(0);
+            $table->decimal('sisa', 12, 2)->default(0);
             $table->string('snap_token', 64)->nullable()->index();
             $table->timestamp('payment_expire_at')->nullable();
             $table->json('midtrans_response')->nullable();

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\Pemesanan;
-use App\Models\PemesananPembayaran;
 
 class MidtransCallbackController extends Controller
 {
@@ -33,101 +33,92 @@ class MidtransCallbackController extends Controller
             return response()->json(['message' => 'ignored: no order_id'], 200);
         }
 
-        $pemesanan = Pemesanan::where('order_id', $orderId)->first();
+        $pemesanan = null;
+        $pemesananId = $payload['custom_field2'] ?? null;
+        $baseOrderId = $payload['custom_field3'] ?? null;
+
+        if ($pemesananId) {
+            $pemesanan = Pemesanan::find($pemesananId);
+        } elseif ($baseOrderId) {
+            $pemesanan = Pemesanan::where('order_id', $baseOrderId)->first();
+        } else {
+            if (preg_match('/^(.*)-(DP|PELUNASAN)-[A-Z0-9]{6}$/', $orderId, $m)) {
+                $baseOrderId = $m[1] ?? null;
+                if ($baseOrderId) {
+                    $pemesanan = Pemesanan::where('order_id', $baseOrderId)->first();
+                }
+            }
+            if (!$pemesanan) {
+                $pemesanan = Pemesanan::where('order_id', $orderId)->first();
+            }
+        }
+
         if (!$pemesanan) {
-            Log::warning('Order not found', ['order_id' => $orderId]);
+            Log::warning('Order not found', ['order_id' => $orderId, 'base' => $baseOrderId, 'pid' => $pemesananId]);
             return response()->json(['message' => 'ignored: order not found'], 200);
         }
 
         $trx = $payload['transaction_status'] ?? '';
         $fraud = $payload['fraud_status'] ?? '';
-        $newStatus = null;
 
+        $mappedStatus = null;
         switch ($trx) {
             case 'capture':
-                $newStatus = ($fraud === 'accept') ? 'di_proses' : 'belum_bayar';
+                $mappedStatus = ($fraud === 'accept') ? 'di_proses' : 'belum_bayar';
                 break;
             case 'settlement':
-                $newStatus = 'di_proses';
+                $mappedStatus = 'di_proses';
                 break;
             case 'pending':
-                $newStatus = 'belum_bayar';
+                $mappedStatus = 'belum_bayar';
                 break;
             case 'deny':
             case 'expire':
-                $newStatus = 'gagal';
+                $mappedStatus = 'gagal';
                 break;
             case 'cancel':
-                $newStatus = 'batal';
+                $mappedStatus = 'batal';
                 break;
             case 'refund':
             case 'partial_refund':
-                $newStatus = 'pengembalian_selesai';
+                $mappedStatus = 'pengembalian_selesai';
                 break;
         }
 
-        if ($newStatus && $pemesanan->status !== $newStatus) {
-            $pemesanan->status = $newStatus;
-        }
+        $tipe = $payload['custom_field1'] ?? null;
+        $amount = (float) ($payload['gross_amount'] ?? 0);
 
-        if (schema_has_column($pemesanan->getTable(), 'midtrans_response')) {
-            $pemesanan->midtrans_response = $payload;
-        }
-        $pemesanan->save();
+        if (in_array($trx, ['capture','settlement'])) {
+            DB::transaction(function () use ($pemesanan, $tipe, $amount, $payload, $mappedStatus) {
+                $p = Pemesanan::lockForUpdate()->find($pemesanan->id);
+                if (!$p) return;
 
-        try {
-            if (class_exists(PemesananPembayaran::class)) {
-                $gross = (int) round((float) ($payload['gross_amount'] ?? 0));
-                $vaBank = $vaNumber = $permataVa = $billerCode = null;
-
-                if (($payload['payment_type'] ?? '') === 'bank_transfer') {
-                    if (!empty($payload['va_numbers'][0]['bank'])) {
-                        $vaBank = $payload['va_numbers'][0]['bank'] ?? null;
-                        $vaNumber = $payload['va_numbers'][0]['va_number'] ?? null;
-                    } elseif (!empty($payload['permata_va_number'])) {
-                        $vaBank = 'permata';
-                        $vaNumber = $payload['permata_va_number'];
-                        $permataVa = $payload['permata_va_number'];
-                    }
-                    $billerCode = $payload['biller_code'] ?? null;
+                if ($mappedStatus && $p->status !== $mappedStatus) {
+                    $p->status = $mappedStatus;
                 }
 
-                PemesananPembayaran::create([
-                    'pemesanan_id' => $pemesanan->id,
-                    'order_id' => $orderId,
-                    'transaction_id' => $payload['transaction_id'] ?? null,
-                    'transaction_status' => $trx,
-                    'fraud_status' => $fraud,
-                    'payment_type' => $payload['payment_type'] ?? null,
-                    'gross_amount' => $gross,
-                    'currency' => $payload['currency'] ?? 'IDR',
-                    'va_bank' => $vaBank,
-                    'va_number' => $vaNumber,
-                    'biller_code' => $billerCode,
-                    'permata_va' => $permataVa,
-                    'transaction_time' => isset($payload['transaction_time']) ? date('Y-m-d H:i:s', strtotime($payload['transaction_time'])) : null,
-                    'settlement_time' => isset($payload['settlement_time']) ? date('Y-m-d H:i:s', strtotime($payload['settlement_time'])) : null,
-                    'pdf_url' => $payload['pdf_url'] ?? ($payload['actions'][1]['url'] ?? null),
-                    'raw_payload' => $payload,
-                ]);
+                if ($tipe === 'DP') {
+                    if ((float) $p->dp <= 0) {
+                        $p->dp = $amount;
+                        $p->sisa = max(0, (float) $p->total_harga - (float) $p->dp);
+                    }
+                } elseif ($tipe === 'PELUNASAN') {
+                    $p->sisa = max(0, (float) $p->sisa - $amount);
+                }
+
+                $p->midtrans_response = $payload;
+                $p->save();
+            });
+        } else {
+            if ($mappedStatus && $pemesanan->status !== $mappedStatus) {
+                $pemesanan->status = $mappedStatus;
             }
-        } catch (\Throwable $e) {
-            Log::error('Store payment log failed', ['e' => $e->getMessage()]);
+            $pemesanan->midtrans_response = $payload;
+            $pemesanan->save();
         }
 
-        Log::info('Order status updated', ['order_id' => $orderId, 'status' => $pemesanan->status]);
+        Log::info('Order status updated', ['order_id' => $orderId, 'status' => $mappedStatus]);
 
         return response()->json(['message' => 'ok'], 200);
-    }
-}
-
-if (!function_exists('schema_has_column')) {
-    function schema_has_column(string $table, string $column): bool
-    {
-        try {
-            return \Illuminate\Support\Facades\Schema::hasColumn($table, $column);
-        } catch (\Throwable $e) {
-            return false;
-        }
     }
 }

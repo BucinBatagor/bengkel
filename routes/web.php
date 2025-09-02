@@ -53,6 +53,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::middleware(AuthenticateAdmin::class)->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
         Route::resource('katalog', KatalogController::class)
             ->except(['show'])
             ->names([
@@ -163,4 +164,7 @@ Route::middleware('auth:pelanggan')->group(function () {
     Route::post('pesanan/{id}/batal', [PesananController::class, 'batal'])->name('pesanan.batal');
     Route::post('pesanan/{id}/ajukan-refund', [PesananController::class, 'ajukanRefund'])->name('pesanan.ajukan_refund');
     Route::post('pesanan/{id}/batalkan-refund', [PesananController::class, 'batalkanRefund'])->name('pesanan.batalkan_refund');
+
+    Route::post('pesanan/{id}/snap-token', [PesananController::class, 'createSnapToken'])->name('pesanan.snap-token');
+    Route::get('pesanan/{id}/nota', [PesananController::class, 'nota'])->name('pesanan.nota');
 });
