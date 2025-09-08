@@ -69,7 +69,7 @@
       </form>
 
       @if($hasRange && $ringkasan)
-        <form method="GET" action="{{ route('admin.laporan.export') }}" class="w-full md:w-auto">
+        <form method="GET" action="{{ route('admin.laporan.export') }}" class="w-full md:w-auto" target="_blank">
           <input type="hidden" name="from" value="{{ request('from') }}">
           <input type="hidden" name="to"   value="{{ request('to') }}">
           <button
@@ -128,21 +128,16 @@
                 <td class="px-5 py-3 border-r whitespace-nowrap text-center">{{ $index + 1 }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">{{ \Carbon\Carbon::parse($pesanan->created_at)->format('d/m/Y') }}</td>
                 <td class="px-5 py-3 border-r">{{ $pesanan->pelanggan->name ?? '-' }}</td>
-
-                {{-- Produk per baris --}}
                 <td class="px-5 py-3 border-r">
                   @foreach ($pesanan->detail as $detail)
                     <div class="mb-1">{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
                   @endforeach
                 </td>
-
-                {{-- Jumlah per-produk (tidak dijumlahkan) --}}
                 <td class="px-5 py-3 border-r text-right font-semibold">
                   @foreach ($pesanan->detail as $detail)
                     <div class="mb-1">{{ (int)($detail->jumlah ?? 1) }}</div>
                   @endforeach
                 </td>
-
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumBesi, 0, ',', '.') }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumLain, 0, ',', '.') }}</td>
                 <td class="px-5 py-3 border-r whitespace-nowrap">Rp {{ number_format($sumJasa, 0, ',', '.') }}</td>
@@ -162,13 +157,8 @@
           @if($orders->count() > 0)
             <tfoot>
               <tr class="bg-gray-50 font-semibold">
-                {{-- Kosongkan 4 kolom pertama --}}
                 <td class="px-5 py-3 border-t border-gray-300" colspan="4"></td>
-
-                {{-- Tulisan "Total" diletakkan tepat di bawah kolom JUMLAH --}}
                 <td class="px-5 py-3 border-t border-gray-300 text-right">Total</td>
-
-                {{-- Angka total lain tetap di kolom masing-masing --}}
                 <td class="px-5 py-3 border-t border-gray-300 whitespace-nowrap">
                   Rp {{ number_format($ringkasan['total_bahan_besi'] ?? 0, 0, ',', '.') }}
                 </td>

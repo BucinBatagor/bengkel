@@ -268,7 +268,7 @@
   <div x-show="showWaitingModal" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
     <div class="bg-white rounded-xl p-6 shadow-lg max-w-md w-full text-center">
       <h2 class="text-xl font-semibold mb-3">Pesanan Diterima</h2>
-      <p class="text-gray-700 mb-4">Terima kasih, pesanan Anda telah kami terima. Silakan tunggu 1×24 jam, pihak bengkel akan menghubungi Anda melalui WhatsApp.</p>
+      <p class="text-gray-700 mb-4">Terima kasih, pesanan Anda telah kami terima. Pihak bengkel akan menghubungi Anda melalui WhatsApp maksimal 1×24 jam.</p>
       <a href="{{ route('pesanan.index') }}" class="px-6 py-2 bg-black text-white rounded hover:bg-gray-800">Lihat Pesanan</a>
     </div>
   </div>

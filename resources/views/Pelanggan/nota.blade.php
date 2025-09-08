@@ -13,7 +13,6 @@
     .titlebar .line-top { font-weight:700; letter-spacing:.4px; }
     .titlebar .line-date { color:#555; margin-top:2px; }
 
-    /* Info pelanggan (Nama & No HP) */
     .infobar {
       display:flex; justify-content:space-between; align-items:center;
       gap:12px; margin:8px 0 10px; padding-bottom:6px; border-bottom:1px solid #e5e5e5;
@@ -23,15 +22,17 @@
     .infobar .item { display:flex; align-items:center; gap:4px; min-width: 160px; }
 
     table { width:100%; border-collapse:collapse; }
-    th, td { border:1px solid #444; padding:6px 6px; vertical-align:top; text-align:left; } /* rata kiri */
+    th, td { border:1px solid #444; padding:6px 6px; vertical-align:top; text-align:left; }
     th { background:#f2f2f2; font-weight:700; }
-    .center { text-align:center; white-space:nowrap; }
     .subrow td { background:transparent; }
 
     .sum { margin-top:10px; }
     .sumrow { display:flex; align-items:flex-start; padding:3px 0; }
     .sumrow .label { flex:1; padding-right:8px; }
     .sumrow .val { min-width:160px; text-align:right; }
+
+    .paynote { margin-top:8px; padding-top:8px; border-top:1px dashed #d7d7d7; }
+    .paynote .text { font-weight:700; }
   </style>
 </head>
 <body>
@@ -64,7 +65,7 @@
 
     @php
       $needs = ($kebutuhan ?? collect())->sortBy(['produk_id','kategori','id']);
-      $sumBesi = 0.0; $sumLain = 0.0; $sumJasa = 0.0;
+      $sumBesi = 0.0; $sumLain = 0.0;
       $totalJumlahKolom = 0.0;
     @endphp
 
@@ -93,23 +94,24 @@
           </tr>
 
           @foreach($subNeeds as $n)
-            @php
-              $ku = (float)($n->kuantitas ?? 0);
-              $hr = (float)($n->harga ?? 0);
-              $sb = isset($n->subtotal) ? (float)$n->subtotal : ($ku * $hr);
+            @if($n->kategori !== 'jasa')
+              @php
+                $ku = (float)($n->kuantitas ?? 0);
+                $hr = (float)($n->harga ?? 0);
+                $sb = isset($n->subtotal) ? (float)$n->subtotal : ($ku * $hr);
 
-              if ($n->kategori === 'bahan_besi')        $sumBesi += $sb;
-              elseif ($n->kategori === 'bahan_lainnya') $sumLain += $sb;
-              elseif ($n->kategori === 'jasa')          $sumJasa += $sb;
+                if ($n->kategori === 'bahan_besi')        $sumBesi += $sb;
+                elseif ($n->kategori === 'bahan_lainnya') $sumLain += $sb;
 
-              $totalJumlahKolom += $sb;
-            @endphp
-            <tr class="subrow">
-              <td>{{ $n->nama ?? '-' }}</td>
-              <td>{{ $ku > 0 ? $fmtQty($ku) : '—' }}</td>
-              <td>{{ $hr > 0 ? $fmt($hr) : '—' }}</td>
-              <td>{{ $fmt($sb) }}</td>
-            </tr>
+                $totalJumlahKolom += $sb;
+              @endphp
+              <tr class="subrow">
+                <td>{{ $n->nama ?? '-' }}</td>
+                <td>{{ $ku > 0 ? $fmtQty($ku) : '—' }}</td>
+                <td>{{ $hr > 0 ? $fmt($hr) : '—' }}</td>
+                <td>{{ $fmt($sb) }}</td>
+              </tr>
+            @endif
           @endforeach
         @endforeach
 
@@ -122,23 +124,24 @@
             <td>—</td>
           </tr>
           @foreach($unlinked as $n)
-            @php
-              $ku = (float)($n->kuantitas ?? 0);
-              $hr = (float)($n->harga ?? 0);
-              $sb = isset($n->subtotal) ? (float)$n->subtotal : ($ku * $hr);
+            @if($n->kategori !== 'jasa')
+              @php
+                $ku = (float)($n->kuantitas ?? 0);
+                $hr = (float)($n->harga ?? 0);
+                $sb = isset($n->subtotal) ? (float)$n->subtotal : ($ku * $hr);
 
-              if ($n->kategori === 'bahan_besi')        $sumBesi += $sb;
-              elseif ($n->kategori === 'bahan_lainnya') $sumLain += $sb;
-              elseif ($n->kategori === 'jasa')          $sumJasa += $sb;
+                if ($n->kategori === 'bahan_besi')        $sumBesi += $sb;
+                elseif ($n->kategori === 'bahan_lainnya') $sumLain += $sb;
 
-              $totalJumlahKolom += $sb;
-            @endphp
-            <tr class="subrow">
-              <td>{{ $n->nama ?? '-' }}</td>
-              <td>{{ $ku > 0 ? $fmtQty($ku) : '—' }}</td>
-              <td>{{ $hr > 0 ? $fmt($hr) : '—' }}</td>
-              <td>{{ $fmt($sb) }}</td>
-            </tr>
+                $totalJumlahKolom += $sb;
+              @endphp
+              <tr class="subrow">
+                <td>{{ $n->nama ?? '-' }}</td>
+                <td>{{ $ku > 0 ? $fmtQty($ku) : '—' }}</td>
+                <td>{{ $hr > 0 ? $fmt($hr) : '—' }}</td>
+                <td>{{ $fmt($sb) }}</td>
+              </tr>
+            @endif
           @endforeach
         @endif
       </tbody>
@@ -155,28 +158,22 @@
       $kVal         = is_numeric($order->keuntungan ?? null) ? (float)$order->keuntungan : 3.0;
       if ($kVal < 1) $kVal = 1.0;
 
-      // Hasil rumus (Besi + Lain) x Keuntungan
       $jumlahRumus  = $bahanTotal * $kVal;
       $kDisp        = rtrim(rtrim(number_format($kVal, 2, ',', '.'), '0'), ',');
 
-      // Total tagihan (pakai total dari request/order jika ada, selain itu pakai hasil rumus)
       $totalTagihan = is_numeric($total ?? null) ? (float)$total
                      : (is_numeric($order->total_harga ?? null) ? (float)$order->total_harga : $jumlahRumus);
 
-      // Pembayaran
       $uangMukaReq  = $dp   ?? $order->dp   ?? 0;
       $sisaReq      = $sisa ?? $order->sisa ?? null;
 
       $uangMuka     = (float)$uangMukaReq;
       $sisaTagihan  = is_numeric($sisaReq) ? max(0, (float)$sisaReq) : max(0, $totalTagihan - $uangMuka);
-      $pelunasan    = ($uangMuka > 0 && $sisaTagihan <= 0) ? max(0, $totalTagihan - $uangMuka) : 0;
     @endphp
 
     <div class="sum">
       <div class="sumrow">
-        <div class="label">
-          ({{ $fmt($sumBesi) }} + {{ $fmt($sumLain) }}) x {{ $kDisp }} = {{ $fmt($jumlahRumus) }}
-        </div>
+        <div class="label">({{ $fmt($sumBesi) }} + {{ $fmt($sumLain) }}) x {{ $kDisp }} = {{ $fmt($jumlahRumus) }}</div>
         <div class="val"></div>
       </div>
       <div class="sumrow">
@@ -193,17 +190,23 @@
           <div class="label">Sisa = {{ $fmt($sisaTagihan) }}</div>
           <div class="val"></div>
         </div>
-      @elseif($uangMuka > 0 && $sisaTagihan <= 0)
-        <div class="sumrow">
-          <div class="label">Uang Muka = {{ $fmt($uangMuka) }}</div>
-          <div class="val"></div>
-        </div>
-        <div class="sumrow">
-          <div class="label">Pelunasan = {{ $fmt($pelunasan) }}</div>
-          <div class="val"></div>
-        </div>
       @endif
     </div>
+
+    @php
+      $pembayaranText = null;
+      if ($sisaTagihan <= 0) {
+        $pembayaranText = 'Sudah dibayar penuh.';
+      } elseif ($uangMuka > 0) {
+        $pembayaranText = 'Bayar di muka: '.$fmt($uangMuka).'.';
+      }
+    @endphp
+
+    @if($pembayaranText)
+      <div class="paynote">
+        <div class="text">{{ $pembayaranText }}</div>
+      </div>
+    @endif
 
   </div>
 </body>

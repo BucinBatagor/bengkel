@@ -12,22 +12,12 @@
     h3 { font-size: 13px; margin-top: 12px; margin-bottom: 6px; }
     .muted { color: #555; }
     .small { font-size: 11px; }
-
     table { width: 100%; border-collapse: collapse; margin-top: 6px; }
     thead { display: table-header-group; }
     tr, td, th { page-break-inside: avoid; }
-    th, td {
-      border: 1px solid #444;
-      padding: 6px 6px;
-      vertical-align: top;
-      line-height: 1.35;
-      word-break: normal;
-      overflow-wrap: break-word;
-      hyphens: none;
-    }
+    th, td { border: 1px solid #444; padding: 6px 6px; vertical-align: top; line-height: 1.35; word-break: normal; overflow-wrap: break-word; hyphens: none; }
     th { background: #f2f2f2; font-weight: bold; }
     tbody tr:nth-child(even) { background: #fafafa; }
-
     .col-idx  { width: 5%; text-align: center; white-space: nowrap; }
     .col-date { white-space: nowrap; }
     .col-cust { }
@@ -35,21 +25,18 @@
     .col-qty  { text-align: left; white-space: nowrap; }
     .col-num, .col-num-s, .col-keu { text-align: left; white-space: nowrap; }
     .wrap-anywhere { word-break: break-word; overflow-wrap: anywhere; }
-
     .summary { margin: 10px 0 14px; }
     .hr { height: 2px; background: #000; margin: 14px 0 8px; }
     .footer { margin-top: 16px; font-size: 11px; text-align: right; color: #333; }
     .break-before { page-break-before: always; }
-
     .subtable { width:100%; border-collapse:collapse; margin-top:6px; font-size:11px; }
     .subtable th, .subtable td { border:1px solid #bbb; padding:4px 6px; line-height:1.3; word-break: normal; overflow-wrap: break-word; }
     .subtable th { background:#f7f7f7; white-space: nowrap; }
-    .subtable .col-cat        { width:auto; }
-    .subtable .col-name       { width:50%; }
-    .subtable .col-kuantitas  { width:auto; text-align:left; white-space: nowrap; }
-    .subtable .col-price      { width:auto; text-align:left; white-space: nowrap; }
-    .subtable .col-sub        { width:auto; text-align:left; white-space: nowrap; }
-
+    .subtable .col-cat { width:auto; }
+    .subtable .col-name { width:50%; }
+    .subtable .col-kuantitas { width:auto; text-align:left; white-space: nowrap; }
+    .subtable .col-price { width:auto; text-align:left; white-space: nowrap; }
+    .subtable .col-sub { width:auto; text-align:left; white-space: nowrap; }
     .calcbox { margin-top:6px; border:1px solid #bbb; padding:6px 8px; font-size:11px; background:#fcfcfc; }
     .calcbox .line { margin:2px 0; }
     .calcbox strong { font-weight:bold; }
@@ -195,21 +182,16 @@
                 <td class="col-idx">{{ $index + 1 }}</td>
                 <td class="col-date">{{ \Carbon\Carbon::parse($pesanan->created_at)->locale('id')->translatedFormat('d/m/Y') }}</td>
                 <td class="col-cust">{{ $pesanan->pelanggan->name ?? '-' }}</td>
-
-                {{-- Produk --}}
                 <td class="col-prod wrap-anywhere">
                   @foreach ($pesanan->detail as $detail)
                     <div>{{ $detail->nama_produk ?? $detail->produk?->nama ?? '-' }}</div>
                   @endforeach
                 </td>
-
-                {{-- Jumlah per-produk (tidak dijumlahkan) --}}
                 <td class="col-qty">
                   @foreach ($pesanan->detail as $detail)
                     <div>{{ (int)($detail->jumlah ?? 1) }}</div>
                   @endforeach
                 </td>
-
                 <td class="col-num">Rp {{ number_format($sumBesi, 0, ',', '.') }}</td>
                 <td class="col-num">Rp {{ number_format($sumLain, 0, ',', '.') }}</td>
                 <td class="col-num-s">Rp {{ number_format($sumJasa, 0, ',', '.') }}</td>
@@ -238,13 +220,9 @@
                             $kuantitas = (float) ($k->kuantitas ?? 0);
                             $harga     = (float) ($k->harga ?? 0);
                             $subtotal  = isset($k->subtotal) ? (float) $k->subtotal : ($kuantitas * $harga);
-
                             $kuantitasDisp = $kuantitas > 0 ? rtrim(rtrim(number_format($kuantitas, 2, ',', '.'), '0'), ',') : '—';
                             $hargaDisp     = $harga > 0 ? 'Rp '.number_format($harga, 0, ',', '.') : '—';
-
-                            $labelKat = $k->kategori === 'bahan_besi'
-                              ? 'Bahan Besi'
-                              : ($k->kategori === 'bahan_lainnya' ? 'Bahan Lainnya' : 'Jasa');
+                            $labelKat = $k->kategori === 'bahan_besi' ? 'Bahan Besi' : ($k->kategori === 'bahan_lainnya' ? 'Bahan Lainnya' : 'Jasa');
                           @endphp
                           <tr>
                             <td>{{ $labelKat }}</td>
@@ -285,7 +263,6 @@
           </tbody>
           <tfoot>
             <tr>
-              {{-- Kolom label + kolom Jumlah terpisah (Jumlah tidak dijumlahkan) --}}
               <td colspan="4" class="col-num"><strong>Total Bulan Ini</strong></td>
               <td class="col-qty">—</td>
               <td class="col-num"><strong>Rp {{ number_format($totalBesiBulan, 0, ',', '.') }}</strong></td>
@@ -301,6 +278,5 @@
     </div>
     @php $firstYear = false; @endphp
   @endforeach
-
 </body>
 </html>

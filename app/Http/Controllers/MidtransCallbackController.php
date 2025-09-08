@@ -12,7 +12,6 @@ class MidtransCallbackController extends Controller
     public function receive(Request $request)
     {
         $payload = $request->json()->all() ?: $request->all();
-        Log::info('Midtrans callback', $payload);
 
         $serverKey = config('midtrans.server_key');
         $calc = hash(
@@ -22,16 +21,12 @@ class MidtransCallbackController extends Controller
             ($payload['gross_amount'] ?? '') .
             $serverKey
         );
-
         if (!isset($payload['signature_key']) || strtolower($payload['signature_key']) !== strtolower($calc)) {
-            Log::warning('Invalid Midtrans signature', ['order_id' => $payload['order_id'] ?? null]);
             return response()->json(['message' => 'ignored: invalid signature'], 200);
         }
 
         $orderId = $payload['order_id'] ?? null;
-        if (!$orderId) {
-            return response()->json(['message' => 'ignored: no order_id'], 200);
-        }
+        if (!$orderId) return response()->json(['message' => 'ignored: no order_id'], 200);
 
         $pemesanan = null;
         $pemesananId = $payload['custom_field2'] ?? null;
@@ -44,80 +39,82 @@ class MidtransCallbackController extends Controller
         } else {
             if (preg_match('/^(.*)-(DP|PELUNASAN)-[A-Z0-9]{6}$/', $orderId, $m)) {
                 $baseOrderId = $m[1] ?? null;
-                if ($baseOrderId) {
-                    $pemesanan = Pemesanan::where('order_id', $baseOrderId)->first();
-                }
+                if ($baseOrderId) $pemesanan = Pemesanan::where('order_id', $baseOrderId)->first();
             }
-            if (!$pemesanan) {
-                $pemesanan = Pemesanan::where('order_id', $orderId)->first();
-            }
+            if (!$pemesanan) $pemesanan = Pemesanan::where('order_id', $orderId)->first();
         }
+        if (!$pemesanan) return response()->json(['message' => 'ignored: order not found'], 200);
 
-        if (!$pemesanan) {
-            Log::warning('Order not found', ['order_id' => $orderId, 'base' => $baseOrderId, 'pid' => $pemesananId]);
-            return response()->json(['message' => 'ignored: order not found'], 200);
-        }
-
-        $trx = $payload['transaction_status'] ?? '';
+        $trx   = $payload['transaction_status'] ?? '';
         $fraud = $payload['fraud_status'] ?? '';
+        $txid  = $payload['transaction_id'] ?? null;
 
         $mappedStatus = null;
         switch ($trx) {
-            case 'capture':
-                $mappedStatus = ($fraud === 'accept') ? 'di_proses' : 'belum_bayar';
-                break;
-            case 'settlement':
-                $mappedStatus = 'di_proses';
-                break;
-            case 'pending':
-                $mappedStatus = 'belum_bayar';
-                break;
+            case 'capture': $mappedStatus = ($fraud === 'accept') ? 'di_proses' : 'belum_bayar'; break;
+            case 'settlement': $mappedStatus = 'di_proses'; break;
+            case 'pending': $mappedStatus = 'belum_bayar'; break;
             case 'deny':
-            case 'expire':
-                $mappedStatus = 'gagal';
-                break;
-            case 'cancel':
-                $mappedStatus = 'batal';
-                break;
+            case 'expire': $mappedStatus = 'gagal'; break;
+            case 'cancel': $mappedStatus = 'batal'; break;
             case 'refund':
-            case 'partial_refund':
-                $mappedStatus = 'pengembalian_selesai';
-                break;
+            case 'partial_refund': $mappedStatus = 'pengembalian_selesai'; break;
         }
 
-        $tipe = $payload['custom_field1'] ?? null;
-        $amount = (float) ($payload['gross_amount'] ?? 0);
+        $rawAmount = (string) ($payload['gross_amount'] ?? '0');
+        $amount = (float) preg_replace('/[^\d.]/', '', $rawAmount);
 
         if (in_array($trx, ['capture','settlement'])) {
-            DB::transaction(function () use ($pemesanan, $tipe, $amount, $payload, $mappedStatus) {
+            DB::transaction(function () use ($pemesanan, $amount, $payload, $mappedStatus, $txid, $trx) {
                 $p = Pemesanan::lockForUpdate()->find($pemesanan->id);
                 if (!$p) return;
 
-                if ($mappedStatus && $p->status !== $mappedStatus) {
-                    $p->status = $mappedStatus;
+                $prev = $p->midtrans_response;
+                $prevTx = null;
+                $prevStatus = null;
+                if (is_array($prev)) {
+                    $prevTx = $prev['transaction_id'] ?? null;
+                    $prevStatus = $prev['transaction_status'] ?? null;
+                } elseif (is_string($prev)) {
+                    $decoded = json_decode($prev, true);
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        $prevTx = $decoded['transaction_id'] ?? null;
+                        $prevStatus = $decoded['transaction_status'] ?? null;
+                    }
                 }
 
-                if ($tipe === 'DP') {
-                    if ((float) $p->dp <= 0) {
-                        $p->dp = $amount;
-                        $p->sisa = max(0, (float) $p->total_harga - (float) $p->dp);
-                    }
-                } elseif ($tipe === 'PELUNASAN') {
-                    $p->sisa = max(0, (float) $p->sisa - $amount);
+                $alreadySettled = in_array($prevStatus, ['capture','settlement'], true);
+                if ($txid && $prevTx && $txid === $prevTx && $alreadySettled) {
+                    if ($mappedStatus && $p->status !== $mappedStatus) $p->status = $mappedStatus;
+                    $p->midtrans_response = $payload;
+                    $p->save();
+                    return;
+                }
+
+                if ($mappedStatus && $p->status !== $mappedStatus) $p->status = $mappedStatus;
+
+                $total   = (float) ($p->total_harga ?? 0);
+                $dpNow   = (float) ($p->dp ?? 0);
+                $sisaNow = max(0, $total - $dpNow);
+
+                $useAmount = $amount > 0 ? $amount : $sisaNow;
+                $useAmount = min($useAmount, $sisaNow);
+
+                if ($total > 0 && $useAmount > 0) {
+                    $newDp = $dpNow + $useAmount;
+                    if ($newDp > $total) $newDp = $total;
+                    $p->dp   = $newDp;
+                    $p->sisa = max(0, $total - $newDp);
                 }
 
                 $p->midtrans_response = $payload;
                 $p->save();
             });
         } else {
-            if ($mappedStatus && $pemesanan->status !== $mappedStatus) {
-                $pemesanan->status = $mappedStatus;
-            }
+            if ($mappedStatus && $pemesanan->status !== $mappedStatus) $pemesanan->status = $mappedStatus;
             $pemesanan->midtrans_response = $payload;
             $pemesanan->save();
         }
-
-        Log::info('Order status updated', ['order_id' => $orderId, 'status' => $mappedStatus]);
 
         return response()->json(['message' => 'ok'], 200);
     }

@@ -156,6 +156,6 @@ class LaporanController extends Controller
         ])->setPaper('a4', 'landscape');
 
         $fileName = 'laporan_' . $start->format('Ymd') . '-' . $end->format('Ymd') . '.pdf';
-        return $pdf->download($fileName);
+        return $pdf->stream($fileName);
     }
 }

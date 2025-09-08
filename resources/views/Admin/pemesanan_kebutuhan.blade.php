@@ -5,21 +5,32 @@
 @section('content')
 @php
 $detailIds = $pesanan->detail->pluck('id')->values();
+$prefill = $pesanan->kebutuhan
+->filter(fn($r) => !is_null($r->pemesanan_detail_id))
+->groupBy('pemesanan_detail_id')
+->map(function($rows){
+return $rows->map(function($r){
+return [
+'pemesanan_detail_id' => (int) $r->pemesanan_detail_id,
+'kategori' => (string) $r->kategori,
+'nama' => (string) $r->nama,
+'kuantitas' => (float) $r->kuantitas,
+'harga_str' => number_format((int)$r->harga, 0, ',', '.'),
+];
+})->values();
+});
 @endphp
 
 <section class="flex flex-col items-center px-6 py-6">
   <div
     class="w-full max-w-screen-xl bg-white px-6 sm:px-8 py-6 rounded-lg shadow"
-    x-data="needsForm(@js($detailIds), @json(old('keuntungan', $pesanan->keuntungan ?? 3)))"
-  >
+    x-data="needsForm(@js($detailIds), @json(old('keuntungan', $pesanan->keuntungan ?? 3)), @js($prefill))">
     <div class="mb-4">
       <a
         href="{{ route('admin.pemesanan.index') }}"
-        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition mb-2"
-      >
+        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition mb-2">
         <span>←</span><span>Kembali</span>
       </a>
-      {{-- Judul: title case, bukan uppercase --}}
       <h1 class="text-2xl font-bold">
         <span class="capitalize">Pesanan</span>
         <span class="capitalize">{{ $pesanan->pelanggan->name ?? '—' }}</span>
@@ -31,17 +42,16 @@ $detailIds = $pesanan->detail->pluck('id')->values();
 
       @foreach($pesanan->detail as $detail)
       <div class="border rounded-lg mb-8">
-        {{-- Sejajarkan teks dengan bagian atas gambar: gunakan items-start --}}
         <div class="px-5 py-4 border-b flex items-start justify-start bg-gray-50">
           <div class="flex items-start gap-4">
             @php $gambar = $detail->produk?->gambar->first()?->gambar; @endphp
             <div class="w-14 h-14 rounded overflow-hidden bg-gray-200">
               @if($gambar)
-                <img src="{{ asset('storage/'.$gambar) }}" alt="Produk" class="w-full h-full object-cover">
+              <img src="{{ asset('storage/'.$gambar) }}" alt="Produk" class="w-full h-full object-cover">
               @endif
             </div>
             <div>
-              <div class="font-semibold">{{ $detail->nama_produk }}</div>
+              <div class="font-semibold">{{ $detail->nama_produk ?? $detail->produk->nama ?? 'Produk' }}</div>
               <div class="text-sm text-gray-600">Jumlah {{ (int)($detail->jumlah ?? 1) }}</div>
             </div>
           </div>
@@ -74,17 +84,17 @@ $detailIds = $pesanan->detail->pluck('id')->values();
                       type="text"
                       x-model="row.nama"
                       placeholder="Nama bahan/jasa"
-                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black"
-                    >
+                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black">
                   </td>
                   <td class="px-5 py-3 border border-gray-300">
                     <input
-                      type="text"
-                      x-model="row.kuantitas_str"
-                      @input="row.kuantitas_str = oneDecimalComma(row.kuantitas_str)"
-                      inputmode="decimal"
-                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black font-mono"
-                    >
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      x-model.number="row.kuantitas_num"
+                      @input="$event.target.value = $event.target.value.replace(',', '.'); row.kuantitas_num = Number($event.target.value || 0)"
+                      @blur="formatQtyOnBlur($event, row)"
+                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black font-mono">
                   </td>
                   <td class="px-5 py-3 border border-gray-300">
                     <input
@@ -92,8 +102,7 @@ $detailIds = $pesanan->detail->pluck('id')->values();
                       x-model="row.harga_str"
                       @input="formatHarga({{ $detail->id }}, i)"
                       inputmode="numeric"
-                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black font-mono"
-                    >
+                      class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-black font-mono">
                   </td>
                   <td class="px-5 py-3 border border-gray-300 font-medium font-mono" x-text="formatRupiah(rowTotal(row))"></td>
                   <td class="px-5 py-3 border border-gray-300 text-center">
@@ -104,7 +113,7 @@ $detailIds = $pesanan->detail->pluck('id')->values();
               <tr>
                 <td colspan="6" class="px-5 py-3 border border-gray-300">
                   <button type="button" @click="addRow({{ $detail->id }})" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
-                    + Tambah Baris
+                    Tambah Baris
                   </button>
                 </td>
               </tr>
@@ -114,9 +123,10 @@ $detailIds = $pesanan->detail->pluck('id')->values();
 
         <template x-for="(row, i) in itemsByDetail[{{ $detail->id }}]" :key="'hidden-{{ $detail->id }}-'+i">
           <div class="hidden">
+            <input type="hidden" :name="'items[{{ $detail->id }}]['+i+'][pemesanan_detail_id]'" value="{{ $detail->id }}">
             <input type="hidden" :name="'items[{{ $detail->id }}]['+i+'][kategori]'" :value="row.kategori">
             <input type="hidden" :name="'items[{{ $detail->id }}]['+i+'][nama]'" :value="row.nama">
-            <input type="hidden" :name="'items[{{ $detail->id }}]['+i+'][kuantitas]'" :value="parseCommaDecimal(row.kuantitas_str)">
+            <input type="hidden" :name="'items[{{ $detail->id }}]['+i+'][kuantitas]'" :value="row.kuantitas_num">
             <input type="hidden" :name="'items[{{ $detail->id }}]['+i+'][harga]'" :value="parseIDRInt(row.harga_str)">
           </div>
         </template>
@@ -124,11 +134,11 @@ $detailIds = $pesanan->detail->pluck('id')->values();
       @endforeach
 
       @if ($errors->any())
-        <div class="mt-4 text-red-600 text-sm">
-          @foreach ($errors->all() as $error)
-            <div>{{ $error }}</div>
-          @endforeach
-        </div>
+      <div class="mt-4 text-red-600 text-sm">
+        @foreach ($errors->all() as $error)
+        <div>{{ $error }}</div>
+        @endforeach
+      </div>
       @endif
 
       <div class="mt-4 max-w-xs">
@@ -142,10 +152,9 @@ $detailIds = $pesanan->detail->pluck('id')->values();
           x-model.number="keuntungan"
           @input="$event.target.value = $event.target.value.replace(',', '.'); keuntungan = Number($event.target.value || 0)"
           value="{{ old('keuntungan', $pesanan->keuntungan ?? 3) }}"
-          class="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
-        >
+          class="w-full border rounded px-3 py-2 focus:outline-none focus:ring">
         @error('keuntungan')
-          <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
         @enderror
       </div>
 
@@ -163,23 +172,34 @@ $detailIds = $pesanan->detail->pluck('id')->values();
 </section>
 
 <script>
-  window.needsForm = function(detailIds = [], keuntunganAwal = 3) {
+  window.needsForm = function(detailIds = [], keuntunganAwal = 3, prefill = {}) {
     const ids = Array.isArray(detailIds) ? detailIds : [];
     const itemsByDetail = {};
     ids.forEach(id => {
-      itemsByDetail[id] = [{
-        kategori: 'bahan_besi',
-        nama: '',
-        kuantitas_str: '',
-        harga_str: ''
-      }];
+      const fromServer = (prefill && prefill[id]) ? prefill[id] : null;
+      if (fromServer && Array.isArray(fromServer) && fromServer.length) {
+        itemsByDetail[id] = fromServer.map(r => ({
+          pemesanan_detail_id: id,
+          kategori: r.kategori || 'bahan_besi',
+          nama: r.nama || '',
+          kuantitas_num: Number(r.kuantitas ?? 0),
+          harga_str: r.harga_str || ''
+        }));
+      } else {
+        itemsByDetail[id] = [{
+          pemesanan_detail_id: id,
+          kategori: 'bahan_besi',
+          nama: '',
+          kuantitas_num: 0,
+          harga_str: ''
+        }];
+      }
     });
 
     return {
       itemsByDetail,
       keuntungan: Number(keuntunganAwal) || 3,
 
-      // Format angka: "1.234.567"
       formatIDRIntInput(raw) {
         const s = String(raw || '').replace(/\D/g, '');
         return s.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -188,44 +208,33 @@ $detailIds = $pesanan->detail->pluck('id')->values();
         const s = String(str || '').replace(/\D/g, '');
         return s ? parseInt(s, 10) : 0;
       },
-
-      // Kuantitas: 1 desimal, koma sebagai pemisah (contoh "12,3")
-      oneDecimalComma(str) {
-        let s = String(str ?? '').replace(/[^\d,\. ,]/g, '').replace(/\./g, ',').replace(/,+/g, ',');
-        if (s === '') return '';
-        if (s[0] === ',') s = '0' + s;
-        const parts = s.split(',');
-        const intp = parts[0] ?? '';
-        const decp = (parts[1] || '').slice(0, 1);
-        return decp ? `${intp || '0'},${decp}` : intp;
-      },
-      parseCommaDecimal(str) {
-        if (str == null || str === '') return 0;
-        const s = String(str).replace(/\./g, '').replace(',', '.');
-        const v = parseFloat(s);
-        return isNaN(v) ? 0 : v;
-      },
-
       formatHarga(did, i) {
         const raw = String(this.itemsByDetail[did][i].harga_str ?? '');
         this.itemsByDetail[did][i].harga_str = this.formatIDRIntInput(raw);
       },
-
       rowTotal(row) {
-        const qty = this.parseCommaDecimal(row.kuantitas_str);
+        const qty = Number(row.kuantitas_num || 0);
         const harga = this.parseIDRInt(row.harga_str);
         return qty * harga;
       },
       sumByKategori(did, kategori) {
         return (this.itemsByDetail[did] || []).reduce((sum, r) => (r.kategori === kategori ? sum + this.rowTotal(r) : sum), 0);
       },
-      sumBahanBesi(did) { return this.sumByKategori(did, 'bahan_besi'); },
-      sumBahanLainnya(did) { return this.sumByKategori(did, 'bahan_lainnya'); },
-      sumJasa(did) { return this.sumByKategori(did, 'jasa'); },
-
-      bahanTotal(did) { return this.sumBahanBesi(did) + this.sumBahanLainnya(did); },
-      jasaTotal(did) { return this.sumJasa(did); },
-
+      sumBahanBesi(did) {
+        return this.sumByKategori(did, 'bahan_besi');
+      },
+      sumBahanLainnya(did) {
+        return this.sumByKategori(did, 'bahan_lainnya');
+      },
+      sumJasa(did) {
+        return this.sumByKategori(did, 'jasa');
+      },
+      bahanTotal(did) {
+        return this.sumBahanBesi(did) + this.sumBahanLainnya(did);
+      },
+      jasaTotal(did) {
+        return this.sumJasa(did);
+      },
       grandTotal(did) {
         const k = Number(this.keuntungan) || 0;
         return this.bahanTotal(did) * k;
@@ -233,22 +242,45 @@ $detailIds = $pesanan->detail->pluck('id')->values();
       grandTotalAll() {
         return Object.keys(this.itemsByDetail || {}).reduce((sum, did) => sum + this.grandTotal(did), 0);
       },
-
       formatRupiah(v) {
         try {
-          return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
+          return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            maximumFractionDigits: 0
+          }).format(v || 0);
         } catch (_) {
           return `Rp ${Math.round(v || 0).toLocaleString('id-ID')}`;
         }
       },
-
       addRow(did) {
-        (this.itemsByDetail[did] ||= []).push({ kategori: 'bahan_besi', nama: '', kuantitas_str: '', harga_str: '' });
+        (this.itemsByDetail[did] ||= []).push({
+          pemesanan_detail_id: did,
+          kategori: 'bahan_besi',
+          nama: '',
+          kuantitas_num: 0,
+          harga_str: ''
+        });
       },
       removeRow(did, i) {
         this.itemsByDetail[did].splice(i, 1);
+        if (this.itemsByDetail[did].length === 0) {
+          this.addRow(did);
+        }
       },
-
+      formatQtyOnBlur(e, row) {
+        let raw = String(e.target.value || '').trim().replace(',', '.');
+        if (raw === '') {
+          e.target.value = '0';
+          row.kuantitas_num = 0;
+          return;
+        }
+        let n = Number(raw);
+        if (!isFinite(n) || n < 0) n = 0;
+        const isInt = Math.abs(n - Math.round(n)) < 1e-9;
+        e.target.value = isInt ? String(Math.round(n)) : String(n);
+        row.kuantitas_num = n;
+      },
       beforeSubmit(e) {
         for (const did of Object.keys(this.itemsByDetail)) {
           const rows = this.itemsByDetail[did] || [];
@@ -259,12 +291,17 @@ $detailIds = $pesanan->detail->pluck('id')->values();
           }
           for (let i = 0; i < rows.length; i++) {
             const r = rows[i];
+            if ((+r.pemesanan_detail_id) !== (+did)) {
+              e.preventDefault();
+              alert(`Baris ke-${i + 1} pada produk ID ${did} tidak valid.`);
+              return;
+            }
             if (!r.nama || !r.kategori) {
               e.preventDefault();
               alert(`Lengkapi baris kebutuhan ke-${i + 1} pada produk ID ${did}.`);
               return;
             }
-            const q = this.parseCommaDecimal(r.kuantitas_str);
+            const q = Number(r.kuantitas_num || 0);
             if (!(q > 0)) {
               e.preventDefault();
               alert(`Kuantitas baris ke-${i + 1} pada produk ID ${did} harus > 0.`);

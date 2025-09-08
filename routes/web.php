@@ -88,6 +88,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('pemesanan/{id}/kebutuhan', [PemesananController::class, 'editKebutuhan'])->name('pemesanan.kebutuhan.edit');
         Route::post('pemesanan/{id}/kebutuhan', [PemesananController::class, 'storeKebutuhan'])->name('pemesanan.kebutuhan.store');
+        Route::delete('pemesanan/{id}/kebutuhan', [PemesananController::class, 'destroyKebutuhan'])->name('pemesanan.kebutuhan.destroy');
+
+        Route::post('pemesanan/{id}/upload-gambar', [PemesananController::class, 'uploadGambar'])->name('pemesanan.upload_gambar');
 
         Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('laporan/export', [LaporanController::class, 'export'])->name('laporan.export');

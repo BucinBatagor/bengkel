@@ -38,7 +38,7 @@ class PesananController extends Controller
     public function createSnapToken(Request $request, $id)
     {
         $request->validate([
-            'tipe' => 'required|in:DP,PELUNASAN',
+            'tipe'   => 'required|in:DP,PELUNASAN',
             'amount' => 'nullable|integer|min:1',
         ]);
 
@@ -54,21 +54,29 @@ class PesananController extends Controller
 
         $pemesanan = $q->firstOrFail();
 
-        $sisa = (float) $pemesanan->sisa;
+        $total = (int) round((float) ($pemesanan->total_harga ?? 0));
+        $dp    = (int) round((float) ($pemesanan->dp ?? 0));
+        $sisa  = max(0, $total - $dp);
+
+        if ($total <= 0) {
+            return response()->json(['message' => 'Total belum tersedia.'], 422);
+        }
+
         if ($sisa <= 0) {
             return response()->json(['message' => 'Pesanan sudah lunas'], 422);
         }
 
         if ($request->tipe === 'DP') {
-            if ((float) $pemesanan->dp > 0) {
+            if ($dp > 0) {
                 return response()->json(['message' => 'DP sudah dilakukan, lanjutkan pelunasan'], 422);
             }
-            $amount = (int) ($request->amount ?? 0);
+            $reqAmt = (int) ($request->amount ?? 0);
+            $amount = max(1000, min($reqAmt, $sisa));
             if ($amount < 1 || $amount > $sisa) {
                 return response()->json(['message' => 'Nominal DP tidak valid'], 422);
             }
         } else {
-            $amount = (int) ceil($sisa);
+            $amount = (int) $sisa;
         }
 
         $pel = $pemesanan->pelanggan;

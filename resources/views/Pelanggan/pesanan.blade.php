@@ -55,7 +55,6 @@
               $sisaInt    = (int) ceil((float) $pesanan->sisa);
               $dpSudah    = (float) $pesanan->dp > 0;
               $hasAction  = in_array($pesanan->status, ['butuh_cek_ukuran','belum_bayar','di_proses','dikerjakan']);
-
               $totalFloat = (float) $pesanan->total_harga;
               $dpFloat    = (float) $pesanan->dp;
               $dp2Amount  = max(0, $totalFloat - $dpFloat);
@@ -103,6 +102,12 @@
                   <div class="rounded-xl border bg-gray-50 p-4 sm:p-5 flex flex-col {{ $hasAction ? 'min-h-[200px]' : '' }}">
                     <h3 class="text-sm font-semibold text-gray-800 mb-3">Ringkasan Pesanan</h3>
 
+                    @if ($pesanan->status === 'butuh_cek_ukuran')
+                      <div class="mb-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                        Menunggu cek ukuran oleh admin.
+                      </div>
+                    @endif
+
                     <div class="space-y-3">
                       <div class="flex items-center justify-between">
                         <p class="text-gray-600 text-sm">Jumlah Pesanan</p>
@@ -113,25 +118,24 @@
                         <p class="text-xl font-bold">Rp {{ number_format($pesanan->total_harga,0,',','.') }}</p>
                       </div>
 
-                      @if ($dpSudah)
+                      @if ((float)$pesanan->total_harga > 0 && $sisaInt === 0)
                         <div class="flex items-center justify-between">
-                          <p class="text-gray-600 text-sm">Uang Muka</p>
-                          <p class="text-base font-semibold">Rp {{ number_format($pesanan->dp,0,',','.') }}</p>
+                          <p class="text-gray-600 text-sm">Pembayaran</p>
+                          <p class="text-base font-semibold">Sudah bayar penuh</p>
                         </div>
-                      @endif
-
-                      @if ($dpSudah && $sisaInt > 0)
-                        <div class="flex items-center justify-between">
-                          <p class="text-gray-600 text-sm">Sisa</p>
-                          <p class="text-base font-semibold">Rp {{ number_format($pesanan->sisa,0,',','.') }}</p>
-                        </div>
-                      @endif
-
-                      @if ($dpSudah && $sisaInt === 0)
-                        <div class="flex items-center justify-between">
-                          <p class="text-gray-600 text-sm">Pelunasan</p>
-                          <p class="text-base font-semibold">Rp {{ number_format($dp2Amount, 0, ',', '.') }}</p>
-                        </div>
+                      @else
+                        @if ($dpSudah)
+                          <div class="flex items-center justify-between">
+                            <p class="text-gray-600 text-sm">Uang Muka</p>
+                            <p class="text-base font-semibold">Rp {{ number_format($pesanan->dp,0,',','.') }}</p>
+                          </div>
+                        @endif
+                        @if ($dpSudah && $sisaInt > 0)
+                          <div class="flex items-center justify-between">
+                            <p class="text-gray-600 text-sm">Sisa</p>
+                            <p class="text-base font-semibold">Rp {{ number_format($pesanan->sisa,0,',','.') }}</p>
+                          </div>
+                        @endif
                       @endif
                     </div>
 
@@ -287,14 +291,12 @@
     <div class="relative bg-white rounded-xl shadow-lg w-full max-w-md p-6" x-transition.scale.origin.center>
       <h2 class="text-lg font-semibold mb-3">Nominal Uang Muka</h2>
       <div class="mb-4">
-        <input type="number" min="1000" step="1000" x-model.number="dpModal.amount"
-               :max="dpModal.sisa"
-               class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring"
-               placeholder="Masukkan nominal uang muka">
+        <input type="text" inputmode="numeric" x-model="dpModal.amountStr" @input="dpModal.onInput()" @blur="dpModal.onBlur()" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring" placeholder="Contoh: 100.000">
         <template x-if="dpModal.error">
           <p class="text-xs text-red-600 mt-1" x-text="dpModal.error"></p>
         </template>
-        <p class="text-xs text-gray-600 mt-1">Sisa saat ini: <span x-text="formatRp(dpModal.sisa)"></span></p>
+        <p class="text-xs text-gray-600 mt-1">Minimal uang muka <span class="font-medium">Rp 100.000</span></p>
+        <p class="text-xs text-gray-600 mt-1">Sisa tagihan: <span x-text="formatRp(dpModal.sisa)"></span></p>
       </div>
       <div class="flex justify-end gap-2">
         <button class="px-4 py-2 border rounded hover:bg-gray-100" @click="dpModal.show=false">Batal</button>
@@ -317,7 +319,25 @@
 window.pesananApp = function() {
   return {
     popup: { show: false, type: '', title: '', message: '', onConfirm: null, onCancel: null },
-    dpModal: { show:false, id:null, sisa:0, amount:null, error:'', loading:false },
+
+    dpModal: {
+      show: false,
+      id: null,
+      sisa: 0,
+      amount: 0,
+      amountStr: '',
+      error: '',
+      loading: false,
+      onInput(){
+        const digits = String(this.amountStr || '').replace(/\D/g, '');
+        this.amount = digits ? parseInt(digits, 10) : 0;
+        this.amountStr = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        this.error = '';
+      },
+      onBlur(){
+        this.onInput();
+      }
+    },
 
     csrf() {
       const m = document.querySelector('meta[name="csrf-token"]');
@@ -381,15 +401,21 @@ window.pesananApp = function() {
     },
 
     openDp(id, sisa){
-      this.dpModal = { show:true, id:id, sisa:parseInt(sisa||0,10), amount:null, error:'', loading:false };
+      this.dpModal.show = true;
+      this.dpModal.id = id;
+      this.dpModal.sisa = parseInt(sisa||0,10);
+      this.dpModal.amount = 0;
+      this.dpModal.amountStr = '';
+      this.dpModal.error = '';
+      this.dpModal.loading = false;
     },
 
     async submitDp(){
       try{
         this.dpModal.error = '';
         const amt = parseInt(this.dpModal.amount || 0, 10);
-        if(isNaN(amt) || amt < 1){ this.dpModal.error = 'Nominal uang muka tidak valid'; return; }
-        if(amt > this.dpModal.sisa){ this.dpModal.error = 'Nominal melebihi sisa'; return; }
+        if(isNaN(amt) || amt < 100000){ this.dpModal.error = 'Nominal uang muka minimal Rp 100.000'; return; }
+        if(amt > this.dpModal.sisa){ this.dpModal.error = 'Nominal melebihi sisa tagihan'; return; }
         this.dpModal.loading = true;
         const token = await this.requestToken(this.dpModal.id, { tipe: 'DP', amount: amt });
         this.dpModal.show = false;
