@@ -15,11 +15,14 @@
 
     .infobar {
       display:flex; justify-content:space-between; align-items:center;
-      gap:12px; margin:8px 0 10px; padding-bottom:6px; border-bottom:1px solid #e5e5e5;
+      gap:12px; margin:8px 0 6px; padding-bottom:6px; border-bottom:1px solid #e5e5e5;
       flex-wrap:wrap;
     }
     .infobar .label { color:#555; margin-right:6px; }
     .infobar .item { display:flex; align-items:center; gap:4px; min-width: 160px; }
+
+    .prodnames { margin: 6px 0 10px; }
+    .prodnames .label { color:#555; margin-right:6px; font-weight:400; }
 
     table { width:100%; border-collapse:collapse; }
     th, td { border:1px solid #444; padding:6px 6px; vertical-align:top; text-align:left; }
@@ -67,12 +70,22 @@
       $needs = ($kebutuhan ?? collect())->sortBy(['produk_id','kategori','id']);
       $sumBesi = 0.0; $sumLain = 0.0;
       $totalJumlahKolom = 0.0;
+
+      $produkList = ($order->detail ?? collect())
+        ->map(fn($d) => $d->nama_produk ?? $d->produk?->nama ?? null)
+        ->filter()
+        ->values();
     @endphp
+
+    <div class="prodnames">
+      <span class="label">Nama Barang:</span>
+      <span>{{ $produkList->isNotEmpty() ? $produkList->join(', ') : '—' }}</span>
+    </div>
 
     <table>
       <thead>
         <tr>
-          <th>Nama Barang</th>
+          <th>Nama Bahan</th>
           <th style="width:16%;">Kuantitas</th>
           <th style="width:20%;">Harga</th>
           <th style="width:20%;">Jumlah</th>
@@ -81,17 +94,9 @@
       <tbody>
         @foreach(($order->detail ?? collect()) as $d)
           @php
-            $prodName   = $d->nama_produk ?? $d->produk?->nama ?? 'Produk';
-            $qtyProduk  = (int)($d->jumlah ?? 1);
-            $prodId     = $d->produk_id ?? ($d->produk->id ?? null);
-            $subNeeds   = $needs->where('produk_id', $prodId);
+            $prodId   = $d->produk_id ?? ($d->produk->id ?? null);
+            $subNeeds = $needs->where('produk_id', $prodId);
           @endphp
-          <tr>
-            <td>{{ $prodName }}</td>
-            <td>{{ $qtyProduk }}</td>
-            <td>—</td>
-            <td>—</td>
-          </tr>
 
           @foreach($subNeeds as $n)
             @if($n->kategori !== 'jasa')
@@ -117,12 +122,6 @@
 
         @php $unlinked = $needs->whereNull('produk_id'); @endphp
         @if($unlinked->count() > 0)
-          <tr>
-            <td>Lainnya (Umum)</td>
-            <td>—</td>
-            <td>—</td>
-            <td>—</td>
-          </tr>
           @foreach($unlinked as $n)
             @if($n->kategori !== 'jasa')
               @php
